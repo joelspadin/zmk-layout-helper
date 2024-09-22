@@ -1,8 +1,15 @@
-import { Tab, TabList, TabValue, makeStyles } from "@fluentui/react-components";
+import {
+  Tab,
+  TabList,
+  TabValue,
+  makeStyles,
+  tokens,
+} from "@fluentui/react-components";
 import { useState } from "react";
 import { DeviceTreeContext, ParserContext } from "./context";
 import { DeviceTreePage } from "./DeviceTreePage";
 import { getParser } from "./parser/devicetree";
+import { PositionMapPage } from "./PositionMapPage";
 import { use, wrapPromise } from "./use";
 
 const parserPromise = wrapPromise(getParser());
@@ -26,7 +33,10 @@ export const MainPage: React.FC = () => {
           <Tab value="positions">Position Map</Tab>
         </TabList>
 
-        {tab === "devicetree" && <DeviceTreePage />}
+        <div className={classes.content}>
+          {tab === "devicetree" && <DeviceTreePage />}
+          {tab === "positions" && <PositionMapPage />}
+        </div>
       </DeviceTreeContext.Provider>
     </ParserContext.Provider>
   );
@@ -37,5 +47,10 @@ const useStyles = makeStyles({
     display: "flex",
     flexFlow: "row wrap",
     justifyContent: "center",
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  content: {
+    height: "calc(100vh - 44px)",
+    backgroundColor: tokens.colorNeutralBackground2,
   },
 });

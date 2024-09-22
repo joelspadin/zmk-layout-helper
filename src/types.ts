@@ -1,16 +1,14 @@
 export interface Node {
-  name: string;
-  label?: string;
+  path: string;
+  label: string;
 }
 
 export interface KeyAttributes {
+  position: Point;
   width: number;
   height: number;
-  x: number;
-  y: number;
   rotation: number;
-  rx: number;
-  ry: number;
+  origin: Point;
 }
 
 export interface PhysicalLayout extends Node {
@@ -22,10 +20,18 @@ export interface PhysicalLayout extends Node {
 
 export interface PositionMapItem extends Node {
   physicalLayout: string;
-  positions: number[];
+  positions: (number | undefined)[];
 }
 
 export interface PositionMap extends Node {
   complete: boolean;
   children: PositionMapItem[];
+}
+
+export type Point = [number, number];
+
+export interface EditState {
+  layouts: PhysicalLayout[];
+  positionMap: PositionMap;
+  length: number;
 }

@@ -10,7 +10,7 @@ import {
   findCompatible,
   getChildNodes,
   getNodeLabel,
-  getNodeName,
+  getNodePath,
   getPropertyValue,
   ParseError,
   parseNumber,
@@ -47,7 +47,7 @@ function parsePhysicalLayout(
   const kscan = getPropertyValue(nodes, "kscan", "phandle") ?? "";
 
   return {
-    name: getNodeName(node),
+    path: getNodePath(node),
     label: getNodeLabel(node),
     displayName,
     keys: parseKeyAttributesArray(keys),
@@ -72,13 +72,11 @@ function parseKeyAttributesArray(keys: Parser.SyntaxNode[]) {
     }
 
     result.push({
+      position: [parseNumber(x) / 100, parseNumber(y) / 100],
       width: parseNumber(width) / 100,
       height: parseNumber(height) / 100,
-      x: parseNumber(x) / 100,
-      y: parseNumber(y) / 100,
       rotation: parseNumber(rot) / 100,
-      rx: parseNumber(rx) / 100,
-      ry: parseNumber(ry) / 100,
+      origin: [parseNumber(rx) / 100, parseNumber(ry) / 100],
     });
   }
 
@@ -90,7 +88,7 @@ function parsePositionMap(map: Parser.SyntaxNode): PositionMap {
   const children = getChildNodes(map);
 
   return {
-    name: getNodeName(map),
+    path: getNodePath(map),
     label: getNodeLabel(map),
     complete,
     children: children.map(parsePositionMapItem),
@@ -99,7 +97,7 @@ function parsePositionMap(map: Parser.SyntaxNode): PositionMap {
 
 function parsePositionMapItem(item: Parser.SyntaxNode): PositionMapItem {
   return {
-    name: getNodeName(item),
+    path: getNodePath(item),
     label: getNodeLabel(item),
     physicalLayout: getPropertyValue(item, "physical-layout", "phandle") || "",
     positions: getPropertyValue(item, "positions", "array") ?? [],

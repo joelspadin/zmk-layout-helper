@@ -3,7 +3,6 @@ import {
   makeStaticStyles,
   makeStyles,
   Spinner,
-  tokens,
   webDarkTheme,
 } from "@fluentui/react-components";
 import { Suspense } from "react";
@@ -33,11 +32,5 @@ const useStaticStyles = makeStaticStyles({
 const useStyles = makeStyles({
   root: {
     colorScheme: "dark",
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: tokens.colorNeutralBackground2,
   },
 });

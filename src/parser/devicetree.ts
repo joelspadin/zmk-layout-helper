@@ -332,13 +332,27 @@ function getFirstCell(node: Parser.SyntaxNode) {
 }
 
 export function parseNumber(node: Parser.SyntaxNode): number {
-  expectType(node, "integer_literal", "integer_cells");
+  expectType(
+    node,
+    "integer_literal",
+    "unary_expression",
+    "binary_expression",
+    "integer_cells"
+  );
 
-  if (node.type === "integer_cells") {
-    return parseNumber(getFirstCell(node));
+  switch (node.type) {
+    case "integer_cells":
+      return parseNumber(getFirstCell(node));
+
+    case "unary_expression":
+      return evaluateUnaryExpression(node);
+
+    case "binary_expression":
+      return evaluateBinaryExpression(node);
+
+    default:
+      return Number(node.text);
   }
-
-  return Number(node.text);
 }
 
 export function parseString(node: Parser.SyntaxNode): string {
@@ -391,4 +405,82 @@ export function parsePhandleArray(
   }
 
   return result;
+}
+
+function evaluateUnaryExpression(node: Parser.SyntaxNode): number {
+  const operator = node.childForFieldName("operator");
+  const argument = node.childForFieldName("argument");
+
+  if (!operator || !argument) {
+    throw new ParseError(node, "Invalid unary expression");
+  }
+
+  const value = parseNumber(argument);
+
+  switch (operator.text) {
+    case "!":
+      return Number(!value);
+    case "~":
+      return ~value;
+    case "-":
+      return -value;
+    case "+":
+      return value;
+    default:
+      throw new ParseError(node, `Invalid operator "${operator.text}"`);
+  }
+}
+
+function evaluateBinaryExpression(node: Parser.SyntaxNode): number {
+  const operator = node.childForFieldName("operator");
+  const left = node.childForFieldName("left");
+  const right = node.childForFieldName("right");
+
+  if (!operator || !left || !right) {
+    throw new ParseError(node, "Invalid binary expression");
+  }
+
+  const value1 = parseNumber(left);
+  const value2 = parseNumber(right);
+
+  switch (operator.text) {
+    case "+":
+      return value1 + value2;
+    case "-":
+      return value1 - value2;
+    case "*":
+      return value1 * value2;
+    case "/":
+      return value1 / value2;
+    case "%":
+      return value1 % value2;
+    case "||":
+      return Number(value1 || value2);
+    case "&&":
+      return Number(value1 && value2);
+    case "|":
+      return value1 | value2;
+    case "^":
+      return value1 ^ value2;
+    case "&":
+      return value1 & value2;
+    case "==":
+      return Number(value1 === value2);
+    case "!=":
+      return Number(value1 !== value2);
+    case ">":
+      return Number(value1 > value2);
+    case ">=":
+      return Number(value1 >= value2);
+    case "<=":
+      return Number(value1 <= value2);
+    case "<":
+      return Number(value1 < value2);
+    case "<<":
+      return value1 << value2;
+    case ">>":
+      return value1 >> value2;
+    default:
+      throw new ParseError(node, `Invalid operator "${operator.text}"`);
+  }
 }
