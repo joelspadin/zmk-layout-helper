@@ -137,7 +137,7 @@ export const PositionMapPage: React.FC = () => {
       </div>
       <div className={mergeClasses(classes.listWrap, classes.mapList)}>
         <table className={classes.mapTable}>
-          <thead>
+          <thead className={mergeClasses(classes.sticky, classes.header)}>
             <PositionMapHeader
               layouts={state.layouts}
               positionMap={state.positionMap}
@@ -161,19 +161,19 @@ export const PositionMapPage: React.FC = () => {
               );
             })}
           </tbody>
-          <tfoot>
-            <tr>
-              <td
-                colSpan={state.layouts.length + 1}
-                className={classes.mapListFooter}
-              >
-                <Button icon={<AddRegular />} onClick={() => addRow()}>
-                  Add
-                </Button>
-              </td>
-            </tr>
-          </tfoot>
         </table>
+
+        <div
+          className={mergeClasses(
+            classes.sticky,
+            classes.footer,
+            classes.mapListFooter
+          )}
+        >
+          <Button icon={<AddRegular />} onClick={() => addRow()}>
+            Add
+          </Button>
+        </div>
       </div>
       <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
         <Switch
@@ -202,7 +202,7 @@ const PositionMapHeader: React.FC<PositionMapHeaderProps> = ({
   const classes = useStyles();
 
   return (
-    <tr className={classes.stickyHeader}>
+    <tr>
       {positionMap.children.map((item) => {
         const layout = findLayout(layouts, item.physicalLayout);
 
@@ -296,11 +296,7 @@ const useStyles = makeStyles({
     ...shorthands.margin(tokens.spacingVerticalM, "48px"),
   },
   mapList: {
-    ...shorthands.padding(
-      0,
-      tokens.spacingHorizontalXL,
-      tokens.spacingVerticalM
-    ),
+    ...shorthands.padding(0, tokens.spacingHorizontalXL),
   },
 
   settingsList: {
@@ -308,20 +304,30 @@ const useStyles = makeStyles({
   },
 
   mapTable: {
-    marginBottom: tokens.spacingVerticalS,
     borderSpacing: `0 ${tokens.spacingVerticalXS}`,
-    // Undo the border spacing at the top so the sticky header doesn't move.
+    // Undo the border spacing at the top and bottom so the sticky header and footer don't move.
     marginTop: `calc(${tokens.spacingVerticalXS} * -1)`,
+    marginBottom: `calc(${tokens.spacingVerticalXS} * -1)`,
   },
 
-  stickyHeader: {
+  sticky: {
     position: "sticky",
-    top: 0,
-
     backgroundColor: tokens.colorNeutralBackground2,
+  },
+
+  header: {
+    top: 0,
 
     // Hide the 2px outline of selected/hovered rows.
     outline: `2px solid ${tokens.colorNeutralBackground2}`,
+  },
+
+  footer: {
+    bottom: 0,
+
+    // Hide the 2px outline of selected/hovered rows.
+    marginLeft: "-2px",
+    marginRight: "-2px",
   },
 
   mapListHeader: {
@@ -333,8 +339,9 @@ const useStyles = makeStyles({
     ...typographyStyles.subtitle2,
   },
   mapListFooter: {
-    height: "40px",
     textAlign: "center",
+    paddingTop: tokens.spacingVerticalS,
+    paddingBottom: tokens.spacingVerticalM,
   },
   mapListRow: {
     borderRadius: tokens.borderRadiusMedium,
