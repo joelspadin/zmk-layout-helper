@@ -6,7 +6,7 @@ import {
 } from "@fluentui/react-components";
 import { useDeviceTree } from "./useDeviceTree";
 
-export const DeviceTreePage: React.FC = () => {
+export const ImportPage: React.FC = () => {
   const classes = useStyles();
   const [devicetree, setDevicetree] = useDeviceTree();
 

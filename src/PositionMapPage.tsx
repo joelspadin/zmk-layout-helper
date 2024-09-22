@@ -1,10 +1,13 @@
 import {
   Button,
+  InfoLabel,
   makeStyles,
   mergeClasses,
+  MessageBar,
+  MessageBarBody,
   shorthands,
+  Switch,
   tokens,
-  Tooltip,
   typographyStyles,
 } from "@fluentui/react-components";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
@@ -13,71 +16,41 @@ import { HTMLAttributes, useCallback, useMemo, useState } from "react";
 import { getGradient, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from "./colors";
 import { Key } from "./keyboard/Key";
 import { Keyboard } from "./keyboard/Keyboard";
-import { ParseError } from "./parser/devicetree";
-import { parseLayouts } from "./parser/layout";
-import { getNodeRange } from "./parser/position";
 import { PhysicalLayout, PositionMap } from "./types";
-import { useDeviceTree } from "./useDeviceTree";
-import { useParser } from "./useParser";
-
-interface State {
-  layouts: PhysicalLayout[];
-  positionMap: PositionMap;
-  length: number;
-}
+import { useEditState } from "./useEditState";
+import { maxValue } from "./utility";
 
 export const PositionMapPage: React.FC = () => {
   const classes = useStyles();
-  const parser = useParser();
-  const [devicetree] = useDeviceTree();
 
-  // TODO: move all of this state up so it isn't cleared when switching tabs
   const [selectedMapIndex, setSelectedMapIndex] = useState<number>();
   const [hoverMapIndex, setHoverMapIndex] = useState<number>();
-  const [state, setState] = useState<State>({
-    layouts: [],
-    positionMap: { path: "", label: "", complete: false, children: [] },
-    length: 0,
-  });
+  const [state, setState] = useEditState();
 
-  const parsed = useMemo(() => {
-    try {
-      return parseLayouts(parser, devicetree);
-    } catch (ex) {
-      if (ex instanceof ParseError) {
-        console.error(getNodeRange(devicetree, ex.node).toString(), ex.message);
-      } else {
-        throw ex;
-      }
-    }
-  }, [parser, devicetree]);
+  const keyCount = useMemo(
+    () => maxValue(state.layouts, (item) => item.keys.length, 0),
+    [state.layouts]
+  );
 
-  const [prevMap, setPrevMap] = useState<PositionMap>();
-  const [prevLayouts, setPrevLayouts] = useState<PhysicalLayout[]>();
-  if (
-    parsed &&
-    (parsed.positionMap !== prevMap || parsed.layouts !== prevLayouts)
-  ) {
-    setPrevMap(parsed.positionMap);
-    setPrevLayouts(parsed.layouts);
-    setState(makeInitialState(parsed.layouts, parsed.positionMap));
-  }
+  const gradient = useMemo(
+    () => getGradient().domain([0, state.length]),
+    [state.length]
+  );
 
-  const keyCount = useMemo(() => {
-    return state.layouts.reduce(
-      (prev, item) => Math.max(prev, item.keys.length),
-      0
-    );
-  }, [state.layouts]);
-
-  const gradient = useMemo(() => {
-    const length =
-      state.positionMap?.children
-        .map((item) => item.positions.length)
-        .reduce((a, b) => Math.max(a, b), 1) ?? 1;
-
-    return getGradient().domain([0, length]);
-  }, [state.positionMap]);
+  const setComplete = useCallback(
+    (complete: boolean) => {
+      setState((s) => {
+        return {
+          ...s,
+          positionMap: {
+            ...s.positionMap,
+            complete,
+          },
+        };
+      });
+    },
+    [setState]
+  );
 
   const setMapKey = useCallback(
     (layout: string, mapIndex?: number, keyIndex?: number) => {
@@ -124,14 +97,25 @@ export const PositionMapPage: React.FC = () => {
     [setState]
   );
 
+  if (state.layouts.length === 0) {
+    return (
+      <div className={classes.root}>
+        <MessageBar intent="error" shape="rounded" className={classes.error}>
+          <MessageBarBody>
+            The devicetree data could not be parsed or contains no physical
+            layout nodes.
+          </MessageBarBody>
+        </MessageBar>
+      </div>
+    );
+  }
+
   return (
     <div className={classes.root}>
       <div className={classes.listWrap}>
         <div className={classes.layoutList}>
           {state.layouts.map((layout) => {
-            const map = state?.positionMap?.children.find(
-              (item) => item.physicalLayout === layout.label
-            );
+            const map = findPositionMap(state.positionMap, layout.label);
 
             return (
               <Keyboard
@@ -151,8 +135,8 @@ export const PositionMapPage: React.FC = () => {
           })}
         </div>
       </div>
-      <div className={classes.listWrap}>
-        <table className={classes.mapList}>
+      <div className={mergeClasses(classes.listWrap, classes.mapList)}>
+        <table className={classes.mapTable}>
           <thead>
             <PositionMapHeader
               layouts={state.layouts}
@@ -184,12 +168,23 @@ export const PositionMapPage: React.FC = () => {
                 className={classes.mapListFooter}
               >
                 <Button icon={<AddRegular />} onClick={() => addRow()}>
-                  Add group
+                  Add
                 </Button>
               </td>
             </tr>
           </tfoot>
         </table>
+      </div>
+      <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
+        <Switch
+          label={
+            <InfoLabel info="Indicates that all keys are in the map, and no fallback matching should occur.">
+              Complete
+            </InfoLabel>
+          }
+          checked={state.positionMap.complete}
+          onChange={(ev, data) => setComplete(data.checked)}
+        />
       </div>
     </div>
   );
@@ -207,9 +202,9 @@ const PositionMapHeader: React.FC<PositionMapHeaderProps> = ({
   const classes = useStyles();
 
   return (
-    <tr>
+    <tr className={classes.stickyHeader}>
       {positionMap.children.map((item) => {
-        const layout = layouts.find((l) => l.label === item.physicalLayout);
+        const layout = findLayout(layouts, item.physicalLayout);
 
         return (
           <th key={item.path} className={classes.mapListHeader}>
@@ -257,27 +252,18 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
 
         return (
           <td key={i}>
-            <div className={classes.keyWrapper}>
-              <Key
-                className={classes.key}
-                color={keyIndex === undefined ? undefined : gradient(index)}
-              >
-                {keyIndex ?? "__"}
-              </Key>
-            </div>
+            <Key
+              className={classes.key}
+              color={keyIndex === undefined ? undefined : gradient(index)}
+            >
+              {keyIndex ?? "__"}
+            </Key>
           </td>
         );
       })}
 
       <td className={classes.actions}>
-        <Tooltip
-          content={`Delete group ${index}`}
-          relationship="label"
-          positioning="after"
-          withArrow
-        >
-          <Button icon={<DeleteRegular />} onClick={() => onDelete?.(index)} />
-        </Tooltip>
+        <Button icon={<DeleteRegular />} onClick={() => onDelete?.(index)} />
       </td>
     </tr>
   );
@@ -286,13 +272,17 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
 const useStyles = makeStyles({
   root: {
     display: "grid",
-    gridTemplate: "auto / max-content max-content",
+    gridTemplate: "auto / max-content max-content max-content",
     width: "max-content",
 
     marginLeft: "auto",
     marginRight: "auto",
   },
+  error: {
+    marginTop: tokens.spacingVerticalM,
+  },
   listWrap: {
+    boxSizing: "border-box",
     maxHeight: "calc(100vh - 44px)",
     overflowX: "hidden",
     overflowY: "auto",
@@ -306,15 +296,37 @@ const useStyles = makeStyles({
     ...shorthands.margin(tokens.spacingVerticalM, "48px"),
   },
   mapList: {
-    borderSpacing: `0 ${tokens.spacingVerticalXS}`,
-    ...shorthands.margin(tokens.spacingVerticalM, tokens.spacingHorizontalXL),
+    ...shorthands.padding(
+      0,
+      tokens.spacingHorizontalXL,
+      tokens.spacingVerticalM
+    ),
   },
+
+  settingsList: {
+    ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+  },
+
+  mapTable: {
+    marginBottom: tokens.spacingVerticalS,
+    borderSpacing: `0 ${tokens.spacingVerticalXS}`,
+  },
+
+  stickyHeader: {
+    position: "sticky",
+    top: 0,
+
+    backgroundColor: tokens.colorNeutralBackground2,
+
+    // Hide the 2px outline of selected/hovered rows.
+    outline: `2px solid ${tokens.colorNeutralBackground2}`,
+  },
+
   mapListHeader: {
     writingMode: "vertical-lr",
     textAlign: "end",
+    paddingInlineStart: tokens.spacingVerticalM,
     paddingInlineEnd: tokens.spacingVerticalS,
-
-    transform: "translate3d(0, 0, 0)",
 
     ...typographyStyles.subtitle2,
   },
@@ -334,14 +346,10 @@ const useStyles = makeStyles({
       outline: `2px solid ${KEY_HOVER_COLOR}`,
     },
   },
-  keyWrapper: {
-    padding: "1px",
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: `calc(${tokens.borderRadiusMedium} + 1px)`,
-  },
   key: {
-    width: "38px",
-    height: "38px",
+    width: "32px",
+    height: "32px",
+    border: `1px solid ${tokens.colorNeutralBackground2}`,
   },
   selected: {
     backgroundColor: KEY_SELECTED_COLOR,
@@ -353,53 +361,14 @@ const useStyles = makeStyles({
   },
 });
 
-function makeInitialState(
-  layouts: PhysicalLayout[] | undefined,
-  positionMap: PositionMap | undefined
-): State {
-  layouts ??= [];
-
-  // Layouts must have labels
-  const newLayouts = layouts.map((layout, i) => {
-    return {
-      ...layout,
-      label: layout.label || layout.path.split("/").pop() || `layout_${i}`,
-    };
-  });
-
-  const newMap: PositionMap = {
-    path: positionMap?.path ?? "/position_map",
-    label: positionMap?.label ?? "",
-    complete: positionMap?.complete ?? false,
-    children: [],
-  };
-
-  // Make sure there is a position map item for every layout, and they are in
-  // the same order as the layouts.
-  for (const layout of layouts) {
-    const existingItem = positionMap?.children.find(
-      (map) => map.physicalLayout === layout.label
-    );
-
-    newMap.children.push({
-      path: newMap.path + "/" + layout.label,
-      label: "",
-      physicalLayout: layout.label,
-      positions: [],
-      ...existingItem,
-    });
-  }
-
-  const length = newMap.children.reduce(
-    (prev, item) => Math.max(prev, item.positions.length),
-    0
+function findPositionMap(positionMap: PositionMap, layoutLabel: string) {
+  return positionMap.children.find(
+    (item) => item.physicalLayout === layoutLabel
   );
+}
 
-  return {
-    layouts: newLayouts,
-    positionMap: newMap,
-    length,
-  };
+function findLayout(layouts: PhysicalLayout[], layoutLabel: string) {
+  return layouts.find((item) => item.label === layoutLabel);
 }
 
 function assignPositionMapKey(
@@ -452,7 +421,7 @@ function removePositionMapIndex(
     ...positionMap,
     children: positionMap.children.map((item) => {
       const positions = [...item.positions];
-      positions.splice(index);
+      positions.splice(index, 1);
 
       return {
         ...item,

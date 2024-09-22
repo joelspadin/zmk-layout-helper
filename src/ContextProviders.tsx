@@ -1,22 +1,28 @@
 import { PropsWithChildren, useMemo, useState } from "react";
 import {
   DEFAULT_EDIT_STATE,
+  DeviceTreeContext,
   EditStateContext,
   ParseErrorContext,
+  ParserContext,
 } from "./context";
-import { ParseError } from "./parser/devicetree";
+import { getParser, ParseError } from "./parser/devicetree";
 import { parseLayouts } from "./parser/layout";
 import { getNodeRange } from "./parser/position";
 import { EditState, PhysicalLayout, PositionMap } from "./types";
-import { useDeviceTree } from "./useDeviceTree";
-import { useParser } from "./useParser";
+import { use, wrapPromise } from "./use";
 
-export const EditStateProvider: React.FC<PropsWithChildren> = ({
+const parserPromise = wrapPromise(getParser());
+
+export type ContextProvidersProps = PropsWithChildren;
+
+export const ContextProviders: React.FC<ContextProvidersProps> = ({
   children,
 }) => {
-  const parser = useParser();
-  const [devicetree] = useDeviceTree();
+  const parser = use(parserPromise);
+  const [devicetree, setDevicetree] = useState<string>("");
 
+  // TODO: add undo/redo for state changes
   const [state, setState] = useState<EditState>(DEFAULT_EDIT_STATE);
 
   const [parsed, error] = useMemo(() => {
@@ -46,11 +52,15 @@ export const EditStateProvider: React.FC<PropsWithChildren> = ({
   }
 
   return (
-    <EditStateContext.Provider value={[state, setState]}>
-      <ParseErrorContext.Provider value={error}>
-        {children}
-      </ParseErrorContext.Provider>
-    </EditStateContext.Provider>
+    <ParserContext.Provider value={parser}>
+      <DeviceTreeContext.Provider value={[devicetree, setDevicetree]}>
+        <EditStateContext.Provider value={[state, setState]}>
+          <ParseErrorContext.Provider value={error}>
+            {children}
+          </ParseErrorContext.Provider>
+        </EditStateContext.Provider>
+      </DeviceTreeContext.Provider>
+    </ParserContext.Provider>
   );
 };
 
