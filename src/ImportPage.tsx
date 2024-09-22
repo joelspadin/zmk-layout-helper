@@ -34,11 +34,12 @@ const useStyles = makeStyles({
     display: "flex",
     justifyContent: "center",
     alignItems: "start",
+    marginTop: tokens.spacingVerticalM,
   },
   textarea: {
     width: "800px",
     maxWidth: "calc(100vw - 48px)",
-    height: "calc(100vh - 44px - 24px - 16px)",
+    height: `calc(100vh - 48px - 26px - ${tokens.spacingVerticalM} * 2)`,
     maxHeight: "unset",
     fontFamily: tokens.fontFamilyMonospace,
   },

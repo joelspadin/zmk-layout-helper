@@ -1,4 +1,4 @@
-export interface Node {
+export interface NodeId {
   path: string;
   label: string;
 }
@@ -11,19 +11,19 @@ export interface KeyAttributes {
   origin: Point;
 }
 
-export interface PhysicalLayout extends Node {
+export interface PhysicalLayout extends NodeId {
   displayName: string;
   keys: KeyAttributes[];
   transform: string;
   kscan: string;
 }
 
-export interface PositionMapItem extends Node {
+export interface PositionMapItem extends NodeId {
   physicalLayout: string;
   positions: (number | undefined)[];
 }
 
-export interface PositionMap extends Node {
+export interface PositionMap extends NodeId {
   complete: boolean;
   children: PositionMapItem[];
 }

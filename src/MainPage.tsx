@@ -7,6 +7,7 @@ import {
 } from "@fluentui/react-components";
 import { useState } from "react";
 import { ContextProviders } from "./ContextProviders";
+import { ExportPage } from "./ExportPage";
 import { ImportPage } from "./ImportPage";
 import { PositionMapPage } from "./PositionMapPage";
 
@@ -30,6 +31,7 @@ export const MainPage: React.FC = () => {
       <div className={classes.content}>
         {tab === "import" && <ImportPage />}
         {tab === "positions" && <PositionMapPage />}
+        {tab === "export" && <ExportPage />}
       </div>
     </ContextProviders>
   );
@@ -41,6 +43,8 @@ const useStyles = makeStyles({
     flexFlow: "row wrap",
     justifyContent: "center",
     backgroundColor: tokens.colorNeutralBackground1,
+    boxShadow: tokens.shadow4,
+    zIndex: 1,
   },
   content: {
     height: "calc(100vh - 44px)",
