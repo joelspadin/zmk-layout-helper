@@ -310,6 +310,8 @@ const useStyles = makeStyles({
   mapTable: {
     marginBottom: tokens.spacingVerticalS,
     borderSpacing: `0 ${tokens.spacingVerticalXS}`,
+    // Undo the border spacing at the top so the sticky header doesn't move.
+    marginTop: `calc(${tokens.spacingVerticalXS} * -1)`,
   },
 
   stickyHeader: {
