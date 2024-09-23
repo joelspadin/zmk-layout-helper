@@ -1,7 +1,6 @@
 import { EditState } from "../types";
 import { ArrayProperty } from "./ArrayProperty";
 import { BooleanProperty } from "./BooleanProperty";
-import { KeyAttributesProperty } from "./KeyAttributesProperty";
 import { PhandleProperty } from "./PhandleProperty";
 import { StringProperty } from "./StringProperty";
 import { Tree } from "./Tree";
@@ -9,22 +8,23 @@ import { Tree } from "./Tree";
 export function formatLayout(state: EditState): string {
   const tree = new Tree();
 
-  for (const layout of state.layouts) {
-    const node = tree.addNode(layout.path, layout.label);
-    node.addChild(new StringProperty("compatible", "zmk,physical-layout"));
-    node.addChild(new StringProperty("display-name", layout.displayName));
+  // TODO: export layouts if a layout editor is added.
+  // for (const layout of state.layouts) {
+  //   const node = tree.addNode(layout.path, layout.label);
+  //   node.addChild(new StringProperty("compatible", "zmk,physical-layout"));
+  //   node.addChild(new StringProperty("display-name", layout.displayName));
 
-    if (layout.kscan) {
-      node.addChild(new PhandleProperty("kscan", layout.kscan));
-    }
+  //   if (layout.kscan) {
+  //     node.addChild(new PhandleProperty("kscan", layout.kscan));
+  //   }
 
-    if (layout.transform) {
-      node.addChild(new PhandleProperty("transform", layout.transform));
-    }
+  //   if (layout.transform) {
+  //     node.addChild(new PhandleProperty("transform", layout.transform));
+  //   }
 
-    node.addSpacer();
-    node.addChild(new KeyAttributesProperty(layout.keys));
-  }
+  //   node.addSpacer();
+  //   node.addChild(new KeyAttributesProperty(layout.keys));
+  // }
 
   const map = tree.addNode(state.positionMap.path, state.positionMap.label);
   map.addChild(
