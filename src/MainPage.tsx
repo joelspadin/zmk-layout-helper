@@ -10,22 +10,38 @@ import { ContextProviders } from "./ContextProviders";
 import { ExportPage } from "./ExportPage";
 import { ImportPage } from "./ImportPage";
 import { PositionMapPage } from "./PositionMapPage";
+import { useDeviceTree } from "./useDeviceTree";
 
 export const MainPage: React.FC = () => {
+  return (
+    <ContextProviders>
+      <PageContents />
+    </ContextProviders>
+  );
+};
+
+const PageContents: React.FC = () => {
   const classes = useStyles();
 
   const [tab, setTab] = useState<TabValue>("import");
 
+  const [devicetree] = useDeviceTree();
+  const disabled = !devicetree;
+
   return (
-    <ContextProviders>
+    <>
       <TabList
         selectedValue={tab}
         onTabSelect={(ev, data) => setTab(data.value)}
         className={classes.tabs}
       >
         <Tab value="import">Import Devicetree</Tab>
-        <Tab value="positions">Edit Position Map</Tab>
-        <Tab value="export">Export Devicetree</Tab>
+        <Tab value="positions" disabled={disabled}>
+          Edit Position Map
+        </Tab>
+        <Tab value="export" disabled={disabled}>
+          Export Devicetree
+        </Tab>
       </TabList>
 
       <div className={classes.content}>
@@ -33,7 +49,7 @@ export const MainPage: React.FC = () => {
         {tab === "positions" && <PositionMapPage />}
         {tab === "export" && <ExportPage />}
       </div>
-    </ContextProviders>
+    </>
   );
 };
 
