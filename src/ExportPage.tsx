@@ -15,10 +15,11 @@ export const ExportPage: React.FC = () => {
 
   // TODO: persist this value
   const [columns, setColumns] = useState(16);
+  const [indent, setIndent] = useState(4);
 
   const devicetree = useMemo(
-    () => formatLayout(state, columns),
-    [state, columns]
+    () => formatLayout(state, { positionMapColumns: columns, indent }),
+    [state, columns, indent]
   );
 
   // TODO: add download button
@@ -30,11 +31,25 @@ export const ExportPage: React.FC = () => {
         <div className={classes.settings}>
           <Field label="Position map columns">
             <SpinButton
+              className={classes.input}
               appearance="underline"
               value={columns}
               onChange={(ev, data) => data.value && setColumns(data.value)}
               min={1}
               max={25}
+              autoComplete="off"
+              data-form-type="other"
+            />
+          </Field>
+
+          <Field label="Indent size">
+            <SpinButton
+              className={classes.input}
+              appearance="underline"
+              value={indent}
+              onChange={(ev, data) => data.value && setIndent(data.value)}
+              min={2}
+              max={8}
               autoComplete="off"
               data-form-type="other"
             />
@@ -61,6 +76,7 @@ const useStyles = makeStyles({
   settings: {
     display: "flex",
     marginBottom: tokens.spacingVerticalM,
+    gap: tokens.spacingHorizontalM,
   },
 
   code: {
@@ -68,5 +84,10 @@ const useStyles = makeStyles({
     width: "800px",
     maxWidth: "calc(100vw - 48px)",
     height: `calc(100vh - 48px - 58px - ${tokens.spacingVerticalM} * 3)`,
+  },
+
+  input: {
+    backgroundColor: tokens.colorNeutralBackground2,
+    maxWidth: "140px",
   },
 });

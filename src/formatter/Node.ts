@@ -1,5 +1,5 @@
 import { indent } from "../utility";
-import { Formattable } from "./Formattable";
+import { Formattable, getIndent } from "./Formattable";
 import { Spacer } from "./Spacer";
 
 export class Node implements Formattable {
@@ -10,17 +10,19 @@ export class Node implements Formattable {
     public label = ""
   ) {}
 
-  toString(): string {
+  toString(indentSize?: number): string {
     let identifier = this.name;
     if (this.label) {
       identifier = this.label + ": " + identifier;
     }
 
-    const contents = this.children.map((c) => c.toString()).join("\n");
+    const contents = this.children
+      .map((c) => c.toString(indentSize))
+      .join("\n");
 
     return `\
 ${identifier} {
-${indent(contents)}
+${indent(contents, 1, getIndent(indentSize))}
 };`;
   }
 

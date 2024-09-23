@@ -1,5 +1,5 @@
 import { chunks, dtnum, lpad } from "../utility";
-import { Formattable } from "./Formattable";
+import { Formattable, getIndent } from "./Formattable";
 
 function formatRow(row: number[], digits: number) {
   return `<${row.map((x) => lpad(dtnum(x), digits)).join(" ")}>`;
@@ -12,7 +12,9 @@ export class ArrayProperty implements Formattable {
     public numColumns = 0
   ) {}
 
-  toString(): string {
+  toString(indentSize?: number): string {
+    const prefix = getIndent(indentSize);
+
     const digits = Math.ceil(Math.log10(Math.max(...this.values)));
 
     if (this.values.length <= this.numColumns) {
@@ -23,9 +25,9 @@ export class ArrayProperty implements Formattable {
 
     return (
       this.name +
-      "\n    = " +
-      rows.map((row) => formatRow(row, digits)).join("\n    , ") +
-      "\n    ;"
+      `\n${prefix}= ` +
+      rows.map((row) => formatRow(row, digits)).join(`\n${prefix}, `) +
+      `\n${prefix};`
     );
   }
 }

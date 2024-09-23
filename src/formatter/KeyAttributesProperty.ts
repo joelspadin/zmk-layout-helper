@@ -1,6 +1,6 @@
 import { KeyAttributes } from "../types";
 import { dtnum, lpad } from "../utility";
-import { Formattable } from "./Formattable";
+import { Formattable, getIndent } from "./Formattable";
 
 function keystr(strings: TemplateStringsArray, ...args: number[]) {
   const widths = [3, 3, 4, 4, 7, 6, 6];
@@ -20,19 +20,21 @@ function keystr(strings: TemplateStringsArray, ...args: number[]) {
 export class KeyAttributesProperty implements Formattable {
   constructor(public keys: KeyAttributes[]) {}
 
-  toString(): string {
+  toString(indentSize?: number): string {
+    const prefix = getIndent(indentSize);
+
     const items = this.keys
       .map(
         (k) =>
           keystr`<&key_physical_attrs ${k.width} ${k.height} ${k.position[0]} ${k.position[1]} ${k.rotation} ${k.origin[0]} ${k.origin[1]}>`
       )
-      .join("\n    , ");
+      .join(`\n${prefix}, `);
 
     return (
-      "keys  //                     w   h    x    y     rot     rx     ry" +
-      "\n    = " +
+      `keys  //${prefix}                 w   h    x    y     rot     rx     ry` +
+      `\n${prefix}= ` +
       items +
-      "\n    ;"
+      `\n${prefix};`
     );
   }
 }

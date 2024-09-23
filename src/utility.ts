@@ -10,8 +10,8 @@ export function dtnum(value: number) {
   return value < 0 ? `(${value})` : value;
 }
 
-export function indent(text: string, level = 1) {
-  const prefix = "    ".repeat(level);
+export function indent(text: string, level = 1, prefix = "    ") {
+  prefix = prefix.repeat(level);
 
   return text
     .split("\n")
