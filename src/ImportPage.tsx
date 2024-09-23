@@ -36,8 +36,8 @@ export const ImportPage: React.FC = () => {
 const useStyles = makeStyles({
   root: {
     display: "flex",
-    justifyContent: "center",
-    alignItems: "start",
+    flexFlow: "column",
+    alignItems: "center",
     marginTop: tokens.spacingVerticalM,
   },
   wrapper: {

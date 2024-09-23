@@ -5,7 +5,10 @@ import { PhandleProperty } from "./PhandleProperty";
 import { StringProperty } from "./StringProperty";
 import { Tree } from "./Tree";
 
-export function formatLayout(state: EditState): string {
+export function formatLayout(
+  state: EditState,
+  positionMapColumns?: number
+): string {
   const tree = new Tree();
 
   // TODO: export layouts if a layout editor or importing from non-devicetree format is added.
@@ -44,7 +47,8 @@ export function formatLayout(state: EditState): string {
     mapNode.addChild(
       new ArrayProperty(
         "positions",
-        mapItem.positions.filter((v) => v !== undefined)
+        mapItem.positions.filter((v) => v !== undefined),
+        positionMapColumns
       )
     );
   }

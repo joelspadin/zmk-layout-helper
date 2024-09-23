@@ -30,6 +30,10 @@ export function lpad(value: string | number, width: number, pad = " ") {
 }
 
 export function chunks<T>(items: readonly T[], chunkSize: number): T[][] {
+  if (chunkSize <= 0) {
+    return [[...items]];
+  }
+
   const result = [];
 
   for (let i = 0; i < items.length; i += chunkSize) {

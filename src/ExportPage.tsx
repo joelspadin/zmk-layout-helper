@@ -1,5 +1,10 @@
-import { makeStyles, tokens } from "@fluentui/react-components";
-import { useMemo } from "react";
+import {
+  Field,
+  makeStyles,
+  SpinButton,
+  tokens,
+} from "@fluentui/react-components";
+import { useMemo, useState } from "react";
 import { CodeBlock } from "./CodeBlock";
 import { formatLayout } from "./formatter/layout";
 import { useEditState } from "./useEditState";
@@ -8,17 +13,38 @@ export const ExportPage: React.FC = () => {
   const classes = useStyles();
   const [state] = useEditState();
 
-  const devicetree = useMemo(() => formatLayout(state), [state]);
+  // TODO: persist this value
+  const [columns, setColumns] = useState(16);
 
-  // TODO: add a copy button
+  const devicetree = useMemo(
+    () => formatLayout(state, columns),
+    [state, columns]
+  );
+
   // TODO: add download button
   // TODO: warn if some positions are undefined
 
   return (
     <div className={classes.root}>
-      <CodeBlock language="dts" className={classes.code}>
-        {devicetree}
-      </CodeBlock>
+      <div>
+        <div className={classes.settings}>
+          <Field label="Position map columns">
+            <SpinButton
+              appearance="underline"
+              value={columns}
+              onChange={(ev, data) => data.value && setColumns(data.value)}
+              min={1}
+              max={25}
+              autoComplete="off"
+              data-form-type="other"
+            />
+          </Field>
+        </div>
+
+        <CodeBlock language="dts" className={classes.code}>
+          {devicetree}
+        </CodeBlock>
+      </div>
     </div>
   );
 };
@@ -26,16 +52,21 @@ export const ExportPage: React.FC = () => {
 const useStyles = makeStyles({
   root: {
     display: "flex",
-    justifyContent: "center",
-    alignItems: "start",
+    flexFlow: "column",
+    alignItems: "center",
 
     marginTop: tokens.spacingVerticalM,
+  },
+
+  settings: {
+    display: "flex",
+    marginBottom: tokens.spacingVerticalM,
   },
 
   code: {
     boxSizing: "border-box",
     width: "800px",
     maxWidth: "calc(100vw - 48px)",
-    height: `calc(100vh - 48px - ${tokens.spacingVerticalM} * 2)`,
+    height: `calc(100vh - 48px - 58px - ${tokens.spacingVerticalM} * 3)`,
   },
 });
