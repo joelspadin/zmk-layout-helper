@@ -10,6 +10,7 @@ export const ImportPage: React.FC = () => {
   const classes = useStyles();
   const [devicetree, setDevicetree] = useDeviceTree();
 
+  // TODO: add a format selector (devicetree/KLE JSON/QMK JSON)
   // TODO: highlight this and show where errors occurred.
 
   return (

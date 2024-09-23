@@ -12,12 +12,20 @@ import {
 } from "@fluentui/react-components";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import chroma from "chroma-js";
-import { HTMLAttributes, useCallback, useMemo, useState } from "react";
+import {
+  HTMLAttributes,
+  MouseEventHandler,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { getGradient, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from "./colors";
 import { Key } from "./keyboard/Key";
 import { Keyboard } from "./keyboard/Keyboard";
 import { PhysicalLayout, PositionMap } from "./types";
 import { useEditState } from "./useEditState";
+import { useScrollToEnd } from "./useScrollToEnd";
 import { maxValue } from "./utility";
 
 export const PositionMapPage: React.FC = () => {
@@ -26,6 +34,9 @@ export const PositionMapPage: React.FC = () => {
   const [selectedMapIndex, setSelectedMapIndex] = useState<number>();
   const [hoverMapIndex, setHoverMapIndex] = useState<number>();
   const [state, setState] = useEditState();
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const scrollToEnd = useScrollToEnd(listRef);
 
   const keyCount = useMemo(
     () => maxValue(state.layouts, (item) => item.keys.length, 0),
@@ -82,7 +93,8 @@ export const PositionMapPage: React.FC = () => {
       };
     });
     setSelectedMapIndex(state.length);
-  }, [state, setState, setSelectedMapIndex]);
+    scrollToEnd();
+  }, [state, setState, setSelectedMapIndex, scrollToEnd]);
 
   const deleteRow = useCallback(
     (index: number) => {
@@ -93,8 +105,11 @@ export const PositionMapPage: React.FC = () => {
           length: s.length - 1,
         };
       });
+      setSelectedMapIndex((i) =>
+        i === undefined ? undefined : i - (i > index ? 1 : 0)
+      );
     },
-    [setState]
+    [setState, setSelectedMapIndex]
   );
 
   if (state.layouts.length === 0) {
@@ -112,6 +127,7 @@ export const PositionMapPage: React.FC = () => {
 
   return (
     <div className={classes.root}>
+      {/* Keyboard layout list */}
       <div className={classes.listWrap}>
         <div className={classes.layoutList}>
           {state.layouts.map((layout) => {
@@ -135,9 +151,16 @@ export const PositionMapPage: React.FC = () => {
           })}
         </div>
       </div>
-      <div className={mergeClasses(classes.listWrap, classes.mapList)}>
+
+      {/* Position map list */}
+      <div
+        ref={listRef}
+        className={mergeClasses(classes.listWrap, classes.mapList)}
+      >
         <table className={classes.mapTable}>
-          <thead className={mergeClasses(classes.sticky, classes.header)}>
+          <thead
+            className={mergeClasses(classes.sticky, classes.mapListHeader)}
+          >
             <PositionMapHeader
               layouts={state.layouts}
               positionMap={state.positionMap}
@@ -163,18 +186,14 @@ export const PositionMapPage: React.FC = () => {
           </tbody>
         </table>
 
-        <div
-          className={mergeClasses(
-            classes.sticky,
-            classes.footer,
-            classes.mapListFooter
-          )}
-        >
+        <div className={mergeClasses(classes.sticky, classes.mapListFooter)}>
           <Button icon={<AddRegular />} onClick={() => addRow()}>
             Add
           </Button>
         </div>
       </div>
+
+      {/* Settings */}
       <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
         <Switch
           label={
@@ -207,7 +226,7 @@ const PositionMapHeader: React.FC<PositionMapHeaderProps> = ({
         const layout = findLayout(layouts, item.physicalLayout);
 
         return (
-          <th key={item.path} className={classes.mapListHeader}>
+          <th key={item.path} className={classes.mapListHeaderCell}>
             {layout?.displayName ?? "&" + item.physicalLayout}
           </th>
         );
@@ -238,6 +257,11 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
 }) => {
   const classes = useStyles();
 
+  const handleClick: MouseEventHandler = (ev) => {
+    ev.stopPropagation();
+    onDelete?.(index);
+  };
+
   return (
     <tr
       className={mergeClasses(
@@ -263,7 +287,7 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
       })}
 
       <td className={classes.actions}>
-        <Button icon={<DeleteRegular />} onClick={() => onDelete?.(index)} />
+        <Button icon={<DeleteRegular />} onClick={handleClick} />
       </td>
     </tr>
   );
@@ -308,9 +332,8 @@ const useStyles = makeStyles({
 
   mapTable: {
     borderSpacing: `0 ${tokens.spacingVerticalXS}`,
-    // Undo the border spacing at the top and bottom so the sticky header and footer don't move.
+    // Undo the border spacing at the top so the sticky header doesn't move.
     marginTop: `calc(${tokens.spacingVerticalXS} * -1)`,
-    marginBottom: `calc(${tokens.spacingVerticalXS} * -1)`,
   },
 
   sticky: {
@@ -318,22 +341,13 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground2,
   },
 
-  header: {
+  mapListHeader: {
     top: 0,
 
     // Hide the 2px outline of selected/hovered rows.
     outline: `2px solid ${tokens.colorNeutralBackground2}`,
   },
-
-  footer: {
-    bottom: 0,
-
-    // Hide the 2px outline of selected/hovered rows.
-    marginLeft: "-2px",
-    marginRight: "-2px",
-  },
-
-  mapListHeader: {
+  mapListHeaderCell: {
     writingMode: "vertical-lr",
     textAlign: "end",
     paddingInlineStart: tokens.spacingVerticalM,
@@ -341,10 +355,18 @@ const useStyles = makeStyles({
 
     ...typographyStyles.subtitle2,
   },
+
   mapListFooter: {
-    textAlign: "center",
+    bottom: 0,
+
+    // Hide the 2px outline of selected/hovered rows.
+    marginLeft: "-2px",
+    marginRight: "-2px",
+
     paddingTop: tokens.spacingVerticalS,
     paddingBottom: tokens.spacingVerticalM,
+
+    textAlign: "center",
   },
   mapListRow: {
     borderRadius: tokens.borderRadiusMedium,

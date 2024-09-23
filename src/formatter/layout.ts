@@ -8,7 +8,7 @@ import { Tree } from "./Tree";
 export function formatLayout(state: EditState): string {
   const tree = new Tree();
 
-  // TODO: export layouts if a layout editor is added.
+  // TODO: export layouts if a layout editor or importing from non-devicetree format is added.
   // for (const layout of state.layouts) {
   //   const node = tree.addNode(layout.path, layout.label);
   //   node.addChild(new StringProperty("compatible", "zmk,physical-layout"));
