@@ -67,7 +67,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
   }, [layout, keyCount]);
 
   return (
-    <div className={classes.wrapper}>
+    <div>
       <h2 className={classes.header}>{layout.displayName}</h2>
       <div className={classes.keyboard} style={getKeyboardStyle(bounds)}>
         {layout.keys.map((key, keyIndex) => {
@@ -125,10 +125,6 @@ export const Keyboard: React.FC<KeyboardProps> = ({
 };
 
 const useStyles = makeStyles({
-  wrapper: {
-    paddingTop: tokens.spacingVerticalL,
-    paddingBottom: tokens.spacingVerticalL,
-  },
   header: {
     display: "flex",
     justifyContent: "center",

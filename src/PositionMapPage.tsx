@@ -272,7 +272,7 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
 const useStyles = makeStyles({
   root: {
     display: "grid",
-    gridTemplate: "auto / max-content max-content max-content",
+    gridTemplate: "auto / fit-content(800px) max-content max-content",
     width: "max-content",
 
     marginLeft: "auto",
@@ -290,11 +290,14 @@ const useStyles = makeStyles({
   },
   layoutList: {
     display: "flex",
-    flexFlow: "column",
-    alignItems: "center",
-    minWidth: "400px",
+    flexFlow: "row wrap",
+    columnGap: tokens.spacingHorizontalXXXL,
+    rowGap: tokens.spacingVerticalXXL,
+    alignItems: "start",
+    justifyContent: "center",
     ...shorthands.margin(tokens.spacingVerticalM, "48px"),
   },
+
   mapList: {
     ...shorthands.padding(0, tokens.spacingHorizontalXL),
   },
