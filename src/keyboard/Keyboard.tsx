@@ -66,8 +66,6 @@ export const Keyboard: React.FC<KeyboardProps> = ({
     return [...Array(extraCount).keys()].map((i) => layout.keys.length + i);
   }, [layout, keyCount]);
 
-  console.log(extraKeys);
-
   return (
     <div className={classes.wrapper}>
       <h2 className={classes.header}>{layout.displayName}</h2>

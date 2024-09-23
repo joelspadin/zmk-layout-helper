@@ -6,6 +6,19 @@ export function maxValue<T>(
   return items.reduce((prev, item) => Math.max(prev, callback(item)), initial);
 }
 
+export function dtnum(value: number) {
+  return value < 0 ? `(${value})` : value;
+}
+
+export function indent(text: string, level = 1) {
+  const prefix = "    ".repeat(level);
+
+  return text
+    .split("\n")
+    .map((line) => (line ? prefix + line : line))
+    .join("\n");
+}
+
 export function lpad(value: string | number, width: number, pad = " ") {
   const text = value.toString();
 
@@ -14,4 +27,14 @@ export function lpad(value: string | number, width: number, pad = " ") {
   }
 
   return pad.repeat(width - text.length) + value;
+}
+
+export function chunks<T>(items: readonly T[], chunkSize: number): T[][] {
+  const result = [];
+
+  for (let i = 0; i < items.length; i += chunkSize) {
+    result.push(items.slice(i, i + chunkSize));
+  }
+
+  return result;
 }

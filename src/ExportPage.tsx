@@ -1,8 +1,18 @@
-import { makeStyles, Textarea, tokens } from "@fluentui/react-components";
+import {
+  makeStyles,
+  mergeClasses,
+  shorthands,
+  tokens,
+} from "@fluentui/react-components";
+import hljs from "highlight.js";
+import dts from "highlight.js/lib/languages/dts";
+import "highlight.js/styles/github-dark.css";
 import { useMemo } from "react";
 import { EditState, KeyAttributes } from "./types";
 import { useEditState } from "./useEditState";
-import { lpad } from "./utility";
+import { chunks, dtnum, indent, lpad } from "./utility";
+
+hljs.registerLanguage("dts", dts);
 
 export const ExportPage: React.FC = () => {
   const classes = useStyles();
@@ -10,18 +20,22 @@ export const ExportPage: React.FC = () => {
 
   const devicetree = useMemo(() => formatDevicetree(state), [state]);
 
+  const highlighted = useMemo(
+    () => hljs.highlight(devicetree, { language: "dts" }).value,
+    [devicetree]
+  );
+
+  // TODO: add a copy button
   // TODO: add download button
   // TODO: warn if some positions are undefined
 
   return (
     <div className={classes.root}>
-      <Textarea
-        value={devicetree}
-        contentEditable={false}
-        textarea={{
-          className: classes.textarea,
-        }}
-      />
+      <div className={classes.wrapper}>
+        <pre className={mergeClasses("hljs", classes.textarea)}>
+          <code dangerouslySetInnerHTML={{ __html: highlighted }} />
+        </pre>
+      </div>
     </div>
   );
 };
@@ -34,11 +48,24 @@ const useStyles = makeStyles({
 
     marginTop: tokens.spacingVerticalM,
   },
+  wrapper: {
+    overflow: "hidden",
+    borderRadius: tokens.borderRadiusMedium,
+    scrollbarColor: `${tokens.colorNeutralForeground3} ${tokens.colorNeutralBackground3}`,
+    boxShadow: tokens.shadow4,
+  },
   textarea: {
+    boxSizing: "border-box",
+
     width: "800px",
     maxWidth: "calc(100vw - 48px)",
     height: `calc(100vh - 48px - ${tokens.spacingVerticalM} * 2)`,
     maxHeight: "unset",
+    overflow: "auto",
+
+    margin: 0,
+    ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+
     fontFamily: tokens.fontFamilyMonospace,
   },
 });
@@ -47,15 +74,6 @@ function formatDevicetree(state: EditState): string {
   const tree = new Tree(state);
 
   return tree.root.toString();
-}
-
-function indent(text: string, level = 1) {
-  const prefix = "    ".repeat(level);
-
-  return text
-    .split("\n")
-    .map((line) => (line ? prefix + line : line))
-    .join("\n");
 }
 
 interface Formattable {
@@ -98,6 +116,12 @@ class PhandleProperty implements Formattable {
   }
 }
 
+const ARRAY_ROW_SIZE = 20;
+
+function formatRow(row: number[], digits: number) {
+  return `<${row.map((x) => lpad(dtnum(x), digits)).join(" ")}>`;
+}
+
 class ArrayProperty implements Formattable {
   constructor(
     public name: string,
@@ -105,18 +129,31 @@ class ArrayProperty implements Formattable {
   ) {}
 
   toString(): string {
-    return `${this.name} = <${this.values.join(" ")}>;`;
+    const digits = Math.ceil(Math.log10(Math.max(...this.values)));
+
+    if (this.values.length <= ARRAY_ROW_SIZE) {
+      return `${this.name} = ${formatRow(this.values, digits)};`;
+    }
+
+    const rows = chunks(this.values, ARRAY_ROW_SIZE);
+
+    return (
+      this.name +
+      "\n    = " +
+      rows.map((row) => formatRow(row, digits)).join("\n    , ") +
+      "\n    ;"
+    );
   }
 }
 
 function keystr(strings: TemplateStringsArray, ...args: number[]) {
-  const widths = [3, 3, 4, 4, 7, 5, 5];
+  const widths = [3, 3, 4, 4, 7, 6, 6];
 
   let result = strings[0];
 
   for (let i = 0; i < args.length; i++) {
     const rounded = Math.round(args[i] * 100);
-    const padded = lpad(rounded, widths[i]);
+    const padded = lpad(dtnum(rounded), widths[i]);
 
     result += padded + strings[i + 1];
   }
@@ -136,10 +173,10 @@ class KeyAttributesProperty implements Formattable {
       .join("\n    , ");
 
     return (
-      "keys  //                     w   h    x    y     rot    rx    ry" +
+      "keys  //                     w   h    x    y     rot     rx     ry" +
       "\n    = " +
       items +
-      "\n;"
+      "\n    ;"
     );
   }
 }

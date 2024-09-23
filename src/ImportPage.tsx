@@ -14,6 +14,7 @@ export const ImportPage: React.FC = () => {
     <div className={classes.root}>
       <Field label="Paste .dts/.overlay here">
         <Textarea
+          root={{ className: classes.wrapper }}
           textarea={{
             className: classes.textarea,
             autoComplete: "off",
@@ -35,6 +36,10 @@ const useStyles = makeStyles({
     justifyContent: "center",
     alignItems: "start",
     marginTop: tokens.spacingVerticalM,
+  },
+  wrapper: {
+    backgroundColor: tokens.colorNeutralBackground3,
+    overflow: "hidden",
   },
   textarea: {
     width: "800px",
