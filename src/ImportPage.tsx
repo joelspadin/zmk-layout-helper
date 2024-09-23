@@ -10,6 +10,8 @@ export const ImportPage: React.FC = () => {
   const classes = useStyles();
   const [devicetree, setDevicetree] = useDeviceTree();
 
+  // TODO: highlight this and show where errors occurred.
+
   return (
     <div className={classes.root}>
       <Field label="Paste .dts/.overlay here">
