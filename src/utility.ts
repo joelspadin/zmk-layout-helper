@@ -2,8 +2,9 @@ export function maxValue<T>(items: readonly T[], callback: (item: T) => number, 
     return items.reduce((prev, item) => Math.max(prev, callback(item)), initial);
 }
 
-export function dtnum(value: number) {
-    return value < 0 ? `(${value})` : value;
+export function dtnum(value: number, width = 0) {
+    const text = value < 0 ? `(${value})` : value.toString();
+    return width ? text.padStart(width) : text;
 }
 
 export function indent(text: string, level = 1, prefix = '    ') {
@@ -13,16 +14,6 @@ export function indent(text: string, level = 1, prefix = '    ') {
         .split('\n')
         .map((line) => (line ? prefix + line : line))
         .join('\n');
-}
-
-export function lpad(value: string | number, width: number, pad = ' ') {
-    const text = value.toString();
-
-    if (text.length >= width) {
-        return value;
-    }
-
-    return pad.repeat(width - text.length) + value;
 }
 
 export function chunks<T>(items: readonly T[], chunkSize: number): T[][] {

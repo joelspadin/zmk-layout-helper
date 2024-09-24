@@ -1,8 +1,8 @@
-import { chunks, dtnum, lpad } from '../utility';
+import { chunks, dtnum } from '../utility';
 import { Formattable, getIndent } from './Formattable';
 
 function formatRow(row: number[], digits: number) {
-    return `<${row.map((x) => lpad(dtnum(x), digits)).join(' ')}>`;
+    return `<${row.map((x) => dtnum(x, digits)).join(' ')}>`;
 }
 
 export class ArrayProperty implements Formattable {

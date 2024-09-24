@@ -1,5 +1,5 @@
 import { KeyAttributes } from '../types';
-import { dtnum, lpad } from '../utility';
+import { dtnum } from '../utility';
 import { Formattable, getIndent } from './Formattable';
 
 function keystr(strings: TemplateStringsArray, ...args: number[]) {
@@ -9,7 +9,7 @@ function keystr(strings: TemplateStringsArray, ...args: number[]) {
 
     for (let i = 0; i < args.length; i++) {
         const rounded = Math.round(args[i] * 100);
-        const padded = lpad(dtnum(rounded), widths[i]);
+        const padded = dtnum(rounded, widths[i]);
 
         result += padded + strings[i + 1];
     }
