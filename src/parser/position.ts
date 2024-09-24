@@ -1,5 +1,8 @@
 import { SyntaxNode } from 'web-tree-sitter';
 
+/**
+ * A single position within a text document.
+ */
 export class Position {
     constructor(
         public line: number,
@@ -11,6 +14,9 @@ export class Position {
     }
 }
 
+/**
+ * A range of positions within a text document.
+ */
 export class Range {
     constructor(
         public start: Position,

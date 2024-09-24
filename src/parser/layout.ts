@@ -1,5 +1,6 @@
 import Parser from 'web-tree-sitter';
 import { KeyAttributes, PhysicalLayout, PositionMap, PositionMapItem } from '../types';
+import { chunks } from '../utility';
 import {
     findBySameNode,
     findCompatible,
@@ -53,8 +54,12 @@ const KEY_ATTRS_SIZE = 8;
 function parseKeyAttributesArray(keys: Parser.SyntaxNode[]) {
     const result: KeyAttributes[] = [];
 
-    for (let i = 0; i < keys.length; i += KEY_ATTRS_SIZE) {
-        const [phandle, width, height, x, y, rot, rx, ry] = keys.slice(i, i + KEY_ATTRS_SIZE);
+    for (const chunk of chunks(keys, KEY_ATTRS_SIZE)) {
+        if (chunk.length !== KEY_ATTRS_SIZE) {
+            throw new ParseError(chunk[chunk.length - 1], 'Expected &key_physical_attrs followed by 7 numbers');
+        }
+
+        const [phandle, width, height, x, y, rot, rx, ry] = chunk;
 
         if (parsePhandle(phandle) !== 'key_physical_attrs') {
             throw new ParseError(phandle, 'Expected &key_physical_attrs');

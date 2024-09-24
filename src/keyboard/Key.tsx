@@ -11,7 +11,6 @@ export interface KeyProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'co
 
 export const Key: React.FC<KeyProps> = ({ color, selected, hover, className, style, children, ...props }) => {
     const classes = useStyles();
-
     const colorStyle = getColorStyle(color);
 
     return (

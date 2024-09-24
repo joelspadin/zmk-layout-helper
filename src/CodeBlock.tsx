@@ -15,6 +15,9 @@ export interface CodeBlockProps extends HTMLAttributes<HTMLPreElement> {
     language?: string;
 }
 
+/**
+ * Displays a code block with syntax highlighting and a copy button.
+ */
 export const CodeBlock: React.FC<CodeBlockProps> = ({ children, language, className, ...props }) => {
     children ??= '';
     language ??= 'dts';

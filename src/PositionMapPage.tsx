@@ -196,7 +196,7 @@ export const PositionMapPage: React.FC = () => {
 
             {/* Settings */}
             <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
-                <h3>Map Settings</h3>
+                <h3>Map settings</h3>
                 <div className={classes.settingGroup}>
                     <Field label="Key count">
                         <SpinButton
@@ -218,7 +218,7 @@ export const PositionMapPage: React.FC = () => {
 
                     {renderConfirmModal()}
                 </div>
-                {/* <h3>Editor Settings</h3>
+                {/* <h3>Editor settings</h3>
         <div className={classes.settingGroup}>
           <Switch
             disabled

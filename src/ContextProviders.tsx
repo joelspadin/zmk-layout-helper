@@ -1,5 +1,5 @@
 import { PropsWithChildren, useMemo, useState } from 'react';
-import { DEFAULT_EDIT_STATE, DeviceTreeContext, EditStateContext, ParseErrorContext, ParserContext } from './context';
+import { DEFAULT_EDIT_STATE, EditStateContext, ImportCodeContext, ParseErrorContext, ParserContext } from './context';
 import { getParser, ParseError } from './parser/devicetree';
 import { parseLayouts } from './parser/layout';
 import { getNodeRange } from './parser/position';
@@ -11,6 +11,9 @@ const parserPromise = wrapPromise(getParser());
 
 export type ContextProvidersProps = PropsWithChildren;
 
+/**
+ * Manages the application state that should be consistent between tabs.
+ */
 export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) => {
     const parser = use(parserPromise);
     const [devicetree, setDevicetree] = useState<string>('');
@@ -43,11 +46,11 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) 
 
     return (
         <ParserContext.Provider value={parser}>
-            <DeviceTreeContext.Provider value={[devicetree, setDevicetree]}>
+            <ImportCodeContext.Provider value={[devicetree, setDevicetree]}>
                 <EditStateContext.Provider value={[state, setState]}>
                     <ParseErrorContext.Provider value={error}>{children}</ParseErrorContext.Provider>
                 </EditStateContext.Provider>
-            </DeviceTreeContext.Provider>
+            </ImportCodeContext.Provider>
         </ParserContext.Provider>
     );
 };

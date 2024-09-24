@@ -1,12 +1,12 @@
 import { Field, makeStyles, Textarea, tokens } from '@fluentui/react-components';
-import { useDeviceTree } from './useDeviceTree';
+import { useImportCode } from './useImportCode';
 
 export const ImportPage: React.FC = () => {
     const classes = useStyles();
-    const [devicetree, setDevicetree] = useDeviceTree();
+    const [devicetree, setDevicetree] = useImportCode();
 
-    // TODO: add a format selector (devicetree/KLE JSON/QMK JSON)
-    // TODO: highlight this and show where errors occurred.
+    // TODO: add a format selector? (devicetree/KLE JSON/QMK JSON)
+    // TODO: highlight the text input and show where errors occurred.
 
     return (
         <div className={classes.root}>

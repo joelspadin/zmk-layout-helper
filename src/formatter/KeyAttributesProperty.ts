@@ -17,6 +17,9 @@ function keystr(strings: TemplateStringsArray, ...args: number[]) {
     return result;
 }
 
+/**
+ * Devicetree phandle array property of &key_physical_attrs values.
+ */
 export class KeyAttributesProperty implements Formattable {
     constructor(public keys: KeyAttributes[]) {}
 

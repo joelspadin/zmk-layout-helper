@@ -24,7 +24,12 @@ export interface KeyboardProps {
     selectedMapIndex?: number;
     hoverMapIndex?: number;
 
+    /** Called when a key is clicked. */
     onKeySelected?: (data: KeyData) => void;
+    /**
+     * Called when the mouse is hovered over a key. `undefined` is sent when a
+     * key is no longer hovered over.
+     */
     onKeyHovered?: (data: KeyData | undefined) => void;
 }
 
@@ -84,7 +89,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
             </div>
             {extraKeys.length > 0 && (
                 <>
-                    <h3 className={classes.extraKeysHeader}>Unused Positions</h3>
+                    <h3 className={classes.extraKeysHeader}>Unused positions</h3>
                     <div className={classes.extraKeysList} style={getExtraKeysStyle(bounds, gapSize)}>
                         {extraKeys.map((keyIndex) => {
                             const mapIndex = getMapIndex(keyIndex, positionMap);

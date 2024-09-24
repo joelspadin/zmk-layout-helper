@@ -1,5 +1,8 @@
 import { Node } from './Node';
 
+/**
+ * Helper for building a representation of devicetree data.
+ */
 export class Tree {
     public root: Node = new Node('/');
 

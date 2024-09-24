@@ -7,6 +7,10 @@ export function getGradient() {
     return chroma.scale(COLORS);
 }
 
+/**
+ * Gets a dark or light color which has the greatest contrast against the given
+ * background color. The return value is a CSS variable rather than a color object.
+ */
 export function getTextColor(backgroundColor: chroma.Color) {
     const lightContrast = chroma.contrast(backgroundColor, 'ffffff');
     const darkContrast = chroma.contrast(backgroundColor, '#242424');

@@ -26,6 +26,9 @@ export async function getParser(): Promise<Parser> {
     return parser;
 }
 
+/**
+ * Indicates a failure to parse part of the code, and where the error occurred.
+ */
 export class ParseError extends Error {
     constructor(
         public node: Parser.SyntaxNode,
@@ -115,18 +118,30 @@ export function getContainingNode(node: Parser.SyntaxNode | null): Parser.Syntax
     return node;
 }
 
+/**
+ * Get the child nodes of a devicetree node.
+ */
 export function getChildNodes(node: Parser.SyntaxNode): Parser.SyntaxNode[] {
     return node.namedChildren.filter((n) => n.type === 'node');
 }
 
+/**
+ * Get a devicetree node's name.
+ */
 export function getNodeName(node: Parser.SyntaxNode | null): string {
     return node?.childForFieldName('name')?.text ?? '';
 }
 
+/**
+ * Get a devicetree node's label, or an empty string if there is no label.
+ */
 export function getNodeLabel(node: Parser.SyntaxNode | null): string {
     return node?.childForFieldName('label')?.text ?? '';
 }
 
+/**
+ * Get a devicetree node's full path.
+ */
 export function getNodePath(node: Parser.SyntaxNode | null): string {
     const parts = getNodePathParts(node);
 
@@ -185,32 +200,55 @@ export function getProperty(node: Parser.SyntaxNode | Parser.SyntaxNode[], name:
 
 export type ValueType = 'bool' | 'int' | 'string' | 'string-array' | 'array' | 'phandle' | 'phandles' | 'phandle-array';
 
+/**
+ * Get whether a boolean property is set on a devicetree node.
+ */
 export function getPropertyValue(node: Parser.SyntaxNode | Parser.SyntaxNode[], name: string, type: 'bool'): boolean;
 
+/**
+ * Get the value of a property holding a single number, or null if the property
+ * is not set.
+ */
 export function getPropertyValue(
     node: Parser.SyntaxNode | Parser.SyntaxNode[],
     name: string,
     type: 'int',
 ): number | null;
 
+/**
+ * Get the value of a property holding a string or node reference, or null if
+ * the property is not set.
+ */
 export function getPropertyValue(
     node: Parser.SyntaxNode | Parser.SyntaxNode[],
     name: string,
     type: 'string' | 'phandle',
 ): string | null;
 
+/**
+ * Get the value of a property holding a string array or node reference array,
+ * or null if the property is not set.
+ */
 export function getPropertyValue(
     node: Parser.SyntaxNode | Parser.SyntaxNode[],
     name: string,
     type: 'string-array' | 'phandles',
 ): string[] | null;
 
+/**
+ * Get the value of a property holding an array of numbers, or null if the
+ * property is not set.
+ */
 export function getPropertyValue(
     node: Parser.SyntaxNode | Parser.SyntaxNode[],
     name: string,
     type: 'array',
 ): number[] | null;
 
+/**
+ * Get the value of a property holding an array of node reference and/or numbers,
+ * or null if the property is not set.
+ */
 export function getPropertyValue(
     node: Parser.SyntaxNode | Parser.SyntaxNode[],
     name: string,
@@ -278,6 +316,10 @@ function getFirstCell(node: Parser.SyntaxNode) {
     return result;
 }
 
+/**
+ * Parse a node as a devicetree number. Expressions are evaluated, but this will
+ * fail to parse any macros that haven't been expanded to numbers/expressions yet.
+ */
 export function parseNumber(node: Parser.SyntaxNode): number {
     expectType(node, 'integer_literal', 'unary_expression', 'binary_expression', 'integer_cells');
 
@@ -296,6 +338,9 @@ export function parseNumber(node: Parser.SyntaxNode): number {
     }
 }
 
+/**
+ * Parse a node as a string literal.
+ */
 export function parseString(node: Parser.SyntaxNode): string {
     expectType(node, 'string_literal');
 
@@ -303,6 +348,9 @@ export function parseString(node: Parser.SyntaxNode): string {
     return text.substring(1, text.length - 1);
 }
 
+/**
+ * Parse a node as a node reference.
+ */
 export function parsePhandle(node: Parser.SyntaxNode): string {
     expectType(node, 'reference', 'integer_cells');
 
@@ -318,6 +366,10 @@ export function parsePhandle(node: Parser.SyntaxNode): string {
     return label.text;
 }
 
+/**
+ * Parse a node as an array of numbers. Any sibling integer_cells nodes following
+ * the given one are also included in the result.
+ */
 export function parseArray(node: Parser.SyntaxNode | null): number[] {
     const result: number[] = [];
 
@@ -332,6 +384,10 @@ export function parseArray(node: Parser.SyntaxNode | null): number[] {
     return result;
 }
 
+/**
+ * Parse a node as an array of node references and/or numbers. Any sibling
+ * integer_cells nodes following the given one are also included in the result.
+ */
 export function parsePhandleArray(node: Parser.SyntaxNode | null): Parser.SyntaxNode[] {
     const result: Parser.SyntaxNode[] = [];
 

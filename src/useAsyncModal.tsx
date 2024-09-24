@@ -17,7 +17,7 @@ interface PromiseRef<Args, Result> {
 }
 
 /**
- * Creates a modal dialog that can be triggered and awaited on for user input.
+ * Creates a modal dialog that can be triggered and awaited for user input.
  *
  * @example
     ```
@@ -28,19 +28,19 @@ interface PromiseRef<Args, Result> {
         return (
             <Dialog {...props} onOpenChange={onOpenChange}>
                 <DialogSurface>
-                    <HotkeyBlockingDialogBody>
+                    <DialogBody>
                         ...
                         <DialogActions>
                             <DialogTrigger>
                                 <Button id={confirmId} appearance="primary">
-                                    Open anyways
+                                    Continue
                                 </Button>
                             </DialogTrigger>
                             <DialogTrigger>
                                 <Button>Cancel</Button>
                             </DialogTrigger>
                         </DialogActions>
-                    </HotkeyBlockingDialogBody>
+                    </DialogBody>
                 </DialogSurface>
             </Dialog>
         );
