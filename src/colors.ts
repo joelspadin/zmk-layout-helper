@@ -3,7 +3,20 @@ import chroma from 'chroma-js';
 
 const COLORS = ['#f9ddda', '#f2b9c4', '#e597b9', '#ce78b3', '#ad5fad', '#834ba0', '#573b88'];
 
-export function getGradient() {
+/**
+ * Just the parts of chroma.Scale<chroma.Color> we actually use, so this can be
+ * replaced by other types of color scales, such as categorical instead of a
+ * gradient.
+ */
+export interface ColorScale {
+    (value: number): chroma.Color;
+    domain(d: [number, number]): this;
+}
+
+/**
+ * Get the color scale to use for keys.
+ */
+export function getColorScale(): ColorScale {
     return chroma.scale(COLORS);
 }
 

@@ -13,9 +13,8 @@ import {
     typographyStyles,
 } from '@fluentui/react-components';
 import { AddRegular, DeleteRegular } from '@fluentui/react-icons';
-import chroma from 'chroma-js';
 import { HTMLAttributes, MouseEventHandler, useCallback, useMemo, useRef, useState } from 'react';
-import { getGradient, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from './colors';
+import { ColorScale, getColorScale, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from './colors';
 import { Key } from './keyboard/Key';
 import { Keyboard } from './keyboard/Keyboard';
 import { ResetPositionMapPrompt } from './ResetPositionMapPrompt';
@@ -44,7 +43,7 @@ export const PositionMapPage: React.FC = () => {
         [state.positionMap.children],
     );
 
-    const gradient = useMemo(() => getGradient().domain([0, length]), [length]);
+    const gradient = useMemo(() => getColorScale().domain([0, length]), [length]);
 
     const setKeyCount = useCallback(
         (keyCount: number) => {
@@ -150,7 +149,7 @@ export const PositionMapPage: React.FC = () => {
                                 layout={layout}
                                 positionMap={map}
                                 keyCount={state.keyCount}
-                                gradient={gradient}
+                                colorScale={gradient}
                                 selectedMapIndex={selectedMapIndex}
                                 hoverMapIndex={hoverMapIndex}
                                 onKeySelected={(data) => setMapKey(layout.label, selectedMapIndex, data.keyIndex)}
@@ -175,7 +174,7 @@ export const PositionMapPage: React.FC = () => {
                                     key={i}
                                     index={i}
                                     positionMap={state.positionMap}
-                                    gradient={gradient}
+                                    colorScale={gradient}
                                     selected={i === selectedMapIndex}
                                     onClick={() => setSelectedMapIndex(i)}
                                     onMouseOver={() => setHoverMapIndex(i)}
@@ -263,7 +262,7 @@ const PositionMapHeader: React.FC<PositionMapHeaderProps> = ({ layouts, position
 interface PositionMapRowProps extends HTMLAttributes<HTMLTableRowElement> {
     index: number;
     positionMap: PositionMap;
-    gradient: chroma.Scale<chroma.Color>;
+    colorScale: ColorScale;
 
     selected: boolean;
 
@@ -273,7 +272,7 @@ interface PositionMapRowProps extends HTMLAttributes<HTMLTableRowElement> {
 const PositionMapRow: React.FC<PositionMapRowProps> = ({
     index,
     positionMap,
-    gradient,
+    colorScale,
     selected,
     onDelete,
     className,
@@ -293,7 +292,7 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
 
                 return (
                     <td key={i}>
-                        <Key className={classes.key} color={keyIndex === undefined ? undefined : gradient(index)}>
+                        <Key className={classes.key} color={keyIndex === undefined ? undefined : colorScale(index)}>
                             {keyIndex ?? '__'}
                         </Key>
                     </td>

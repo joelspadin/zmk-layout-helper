@@ -1,8 +1,6 @@
-import chroma from 'chroma-js';
-
 import { makeStyles, shorthands, tokens, typographyStyles } from '@fluentui/react-components';
 import { CSSProperties, useMemo } from 'react';
-import { KEY_HOVER_COLOR } from '../colors';
+import { ColorScale, KEY_HOVER_COLOR } from '../colors';
 import { KeyAttributes, PhysicalLayout, Point, PositionMapItem } from '../types';
 import { Key } from './Key';
 
@@ -20,7 +18,7 @@ export interface KeyboardProps {
     keyCount?: number;
     keySize?: number;
     gapSize?: number;
-    gradient?: chroma.Scale<chroma.Color>;
+    colorScale?: ColorScale;
     selectedMapIndex?: number;
     hoverMapIndex?: number;
 
@@ -39,7 +37,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
     keyCount,
     keySize,
     gapSize,
-    gradient,
+    colorScale,
     selectedMapIndex,
     hoverMapIndex,
     onKeyHovered,
@@ -68,7 +66,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
                 {layout.keys.map((key, keyIndex) => {
                     const mapIndex = getMapIndex(keyIndex, positionMap);
                     const style = getKeyStyle(key, bounds, unitSize, gapSize);
-                    const color = getKeyColor(mapIndex, gradient);
+                    const color = getKeyColor(mapIndex, colorScale);
 
                     return (
                         <Key
@@ -93,7 +91,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
                     <div className={classes.extraKeysList} style={getExtraKeysStyle(bounds, gapSize)}>
                         {extraKeys.map((keyIndex) => {
                             const mapIndex = getMapIndex(keyIndex, positionMap);
-                            const color = getKeyColor(mapIndex, gradient);
+                            const color = getKeyColor(mapIndex, colorScale);
                             const style = getExtraKeyStyle(keySize);
 
                             return (
@@ -160,12 +158,12 @@ function getSelected(mapIndex: number | undefined, selectedMapIndex: number | un
     return selectedMapIndex !== undefined && mapIndex === selectedMapIndex;
 }
 
-function getKeyColor(mapIndex: number | undefined, gradient: chroma.Scale<chroma.Color> | undefined) {
-    if (mapIndex === undefined || gradient === undefined) {
+function getKeyColor(mapIndex: number | undefined, colorScale: ColorScale | undefined) {
+    if (mapIndex === undefined || colorScale === undefined) {
         return undefined;
     }
 
-    return gradient(mapIndex);
+    return colorScale(mapIndex);
 }
 
 function getKeyboardStyle(bounds: Bounds): CSSProperties {
