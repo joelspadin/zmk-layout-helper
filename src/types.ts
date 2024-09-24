@@ -33,5 +33,5 @@ export type Point = [number, number];
 export interface EditState {
     layouts: PhysicalLayout[];
     positionMap: PositionMap;
-    length: number;
+    keyCount: number;
 }

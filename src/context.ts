@@ -19,7 +19,7 @@ export const DEFAULT_EDIT_STATE: EditState = {
         complete: false,
         children: [],
     },
-    length: 0,
+    keyCount: 0,
 };
 
 export const EditStateContext = createContext<EditStateState>([DEFAULT_EDIT_STATE, () => {}]);

@@ -1,11 +1,13 @@
 import {
     Button,
+    Field,
     InfoLabel,
     makeStyles,
     mergeClasses,
     MessageBar,
     MessageBarBody,
     shorthands,
+    SpinButton,
     Switch,
     tokens,
     typographyStyles,
@@ -17,7 +19,7 @@ import { getGradient, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from './colors';
 import { Key } from './keyboard/Key';
 import { Keyboard } from './keyboard/Keyboard';
 import { ResetPositionMapPrompt } from './ResetPositionMapPrompt';
-import { PhysicalLayout, PositionMap } from './types';
+import { EditState, PhysicalLayout, PositionMap } from './types';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
 import { useScrollToEnd } from './useScrollToEnd';
@@ -36,9 +38,25 @@ export const PositionMapPage: React.FC = () => {
     const listRef = useRef<HTMLDivElement>(null);
     const scrollToEnd = useScrollToEnd(listRef);
 
-    const keyCount = useMemo(() => maxValue(state.layouts, (item) => item.keys.length, 0), [state.layouts]);
+    const minKeyCount = useMemo(() => getMinKeyCount(state), [state]);
+    const length = useMemo(
+        () => maxValue(state.positionMap.children, (item) => item.positions.length),
+        [state.positionMap.children],
+    );
 
-    const gradient = useMemo(() => getGradient().domain([0, state.length]), [state.length]);
+    const gradient = useMemo(() => getGradient().domain([0, length]), [length]);
+
+    const setKeyCount = useCallback(
+        (keyCount: number) => {
+            setState((s) => {
+                return {
+                    ...s,
+                    keyCount,
+                };
+            });
+        },
+        [setState],
+    );
 
     const setComplete = useCallback(
         (complete: boolean) => {
@@ -76,12 +94,11 @@ export const PositionMapPage: React.FC = () => {
             return {
                 ...s,
                 positionMap: addPositionMapIndex(s.positionMap),
-                length: s.length + 1,
             };
         });
-        setSelectedMapIndex(state.length);
+        setSelectedMapIndex(length);
         scrollToEnd();
-    }, [state, setState, setSelectedMapIndex, scrollToEnd]);
+    }, [length, setState, setSelectedMapIndex, scrollToEnd]);
 
     const deleteRow = useCallback(
         (index: number) => {
@@ -89,7 +106,6 @@ export const PositionMapPage: React.FC = () => {
                 return {
                     ...s,
                     positionMap: removePositionMapIndex(s.positionMap, index),
-                    length: s.length - 1,
                 };
             });
             setSelectedMapIndex((i) => (i === undefined ? undefined : i - (i > index ? 1 : 0)));
@@ -103,7 +119,6 @@ export const PositionMapPage: React.FC = () => {
                 return {
                     ...s,
                     positionMap: resetPositionMap(s.positionMap),
-                    length: 0,
                 };
             });
         }
@@ -134,7 +149,7 @@ export const PositionMapPage: React.FC = () => {
                                 key={layout.path}
                                 layout={layout}
                                 positionMap={map}
-                                keyCount={keyCount}
+                                keyCount={state.keyCount}
                                 gradient={gradient}
                                 selectedMapIndex={selectedMapIndex}
                                 hoverMapIndex={hoverMapIndex}
@@ -154,7 +169,7 @@ export const PositionMapPage: React.FC = () => {
                     </thead>
 
                     <tbody>
-                        {[...Array(state.length).keys()].map((i) => {
+                        {[...Array(length).keys()].map((i) => {
                             return (
                                 <PositionMapRow
                                     key={i}
@@ -183,6 +198,13 @@ export const PositionMapPage: React.FC = () => {
             <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
                 <h3>Map Settings</h3>
                 <div className={classes.settingGroup}>
+                    <Field label="Key count">
+                        <SpinButton
+                            value={state.keyCount}
+                            onChange={(ev, data) => data.value && setKeyCount(data.value)}
+                            min={minKeyCount}
+                        />
+                    </Field>
                     <Switch
                         label={
                             <InfoLabel info="Indicates that all keys are in the map, and no fallback matching should occur.">
@@ -424,6 +446,16 @@ function findLayout(layouts: PhysicalLayout[], layoutLabel: string) {
     return layouts.find((item) => item.label === layoutLabel);
 }
 
+function getMinKeyCount(state: EditState) {
+    const layoutKeyCount = maxValue(state.layouts, (item) => item.keys.length);
+    const maxUsedKey = Math.max(
+        0,
+        ...state.positionMap.children.map((map) => map.positions.filter((p) => p !== undefined)).flat(),
+    );
+
+    return Math.max(layoutKeyCount, maxUsedKey + 1);
+}
+
 function assignPositionMapKey(
     positionMap: PositionMap,
     layout: string,
@@ -439,7 +471,7 @@ function assignPositionMapKey(
 
             const positions = item.positions.map((key, i) => {
                 if (i === mapIndex) {
-                    return keyIndex;
+                    return keyIndex === key ? undefined : keyIndex;
                 }
 
                 if (key === keyIndex) {

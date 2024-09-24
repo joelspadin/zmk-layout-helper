@@ -56,5 +56,7 @@ const useStyles = makeStyles({
         height: 'calc(100vh - 44px)',
         overflowY: 'hidden',
         backgroundColor: tokens.colorNeutralBackground2,
+
+        scrollbarColor: `${tokens.colorNeutralForeground2} ${tokens.colorNeutralBackground2}`,
     },
 });

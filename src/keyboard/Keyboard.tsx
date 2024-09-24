@@ -85,11 +85,11 @@ export const Keyboard: React.FC<KeyboardProps> = ({
             {extraKeys.length > 0 && (
                 <>
                     <h3 className={classes.extraKeysHeader}>Unused Positions</h3>
-                    <div className={classes.extraKeysList}>
+                    <div className={classes.extraKeysList} style={getExtraKeysStyle(bounds, gapSize)}>
                         {extraKeys.map((keyIndex) => {
                             const mapIndex = getMapIndex(keyIndex, positionMap);
                             const color = getKeyColor(mapIndex, gradient);
-                            const style = getExtraKeyStyle(keySize, gapSize);
+                            const style = getExtraKeyStyle(keySize);
 
                             return (
                                 <Key
@@ -170,6 +170,13 @@ function getKeyboardStyle(bounds: Bounds): CSSProperties {
     };
 }
 
+function getExtraKeysStyle(bounds: Bounds, gapSize: number): CSSProperties {
+    return {
+        maxWidth: `${bounds.right - bounds.left}px`,
+        gap: `${gapSize}px`,
+    };
+}
+
 function getKeyStyle(key: KeyAttributes, bounds: Bounds, unitSize: number, gapSize: number): CSSProperties {
     const [x, y] = key.position;
     const [rx, ry] = key.origin;
@@ -190,12 +197,10 @@ function getKeyStyle(key: KeyAttributes, bounds: Bounds, unitSize: number, gapSi
     };
 }
 
-function getExtraKeyStyle(keySize: number, gapSize: number) {
+function getExtraKeyStyle(keySize: number) {
     return {
         width: `${keySize}px`,
         height: `${keySize}px`,
-        marginRight: `${gapSize}px`,
-        marginBottom: `${gapSize}px`,
     };
 }
 

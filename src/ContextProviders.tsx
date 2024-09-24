@@ -5,6 +5,7 @@ import { parseLayouts } from './parser/layout';
 import { getNodeRange } from './parser/position';
 import { EditState, PhysicalLayout, PositionMap } from './types';
 import { use, wrapPromise } from './use';
+import { maxValue } from './utility';
 
 const parserPromise = wrapPromise(getParser());
 
@@ -83,11 +84,11 @@ function makeInitialState(layouts: PhysicalLayout[] | undefined, positionMap: Po
         });
     }
 
-    const length = newMap.children.reduce((prev, item) => Math.max(prev, item.positions.length), 0);
+    const keyCount = maxValue(newLayouts, (item) => item.keys.length);
 
     return {
         layouts: newLayouts,
         positionMap: newMap,
-        length,
+        keyCount,
     };
 }
