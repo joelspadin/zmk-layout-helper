@@ -23,7 +23,9 @@ import {
 import { getGradient, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from "./colors";
 import { Key } from "./keyboard/Key";
 import { Keyboard } from "./keyboard/Keyboard";
+import { ResetPositionMapPrompt } from "./ResetPositionMapPrompt";
 import { PhysicalLayout, PositionMap } from "./types";
+import { useAsyncModal } from "./useAsyncModal";
 import { useEditState } from "./useEditState";
 import { useScrollToEnd } from "./useScrollToEnd";
 import { maxValue } from "./utility";
@@ -31,8 +33,11 @@ import { maxValue } from "./utility";
 export const PositionMapPage: React.FC = () => {
   const classes = useStyles();
 
+  const [confirmReset, renderConfirmModal] = useConfirmReset();
+
   const [selectedMapIndex, setSelectedMapIndex] = useState<number>();
   const [hoverMapIndex, setHoverMapIndex] = useState<number>();
+  // const [autoAdd, setAutoAdd] = useState(true);
   const [state, setState] = useEditState();
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -111,6 +116,18 @@ export const PositionMapPage: React.FC = () => {
     },
     [setState, setSelectedMapIndex]
   );
+
+  const resetMap = useCallback(async () => {
+    if (await confirmReset()) {
+      setState((s) => {
+        return {
+          ...s,
+          positionMap: resetPositionMap(s.positionMap),
+          length: 0,
+        };
+      });
+    }
+  }, [confirmReset, setState]);
 
   if (state.layouts.length === 0) {
     return (
@@ -195,15 +212,34 @@ export const PositionMapPage: React.FC = () => {
 
       {/* Settings */}
       <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
-        <Switch
-          label={
-            <InfoLabel info="Indicates that all keys are in the map, and no fallback matching should occur.">
-              Complete
-            </InfoLabel>
-          }
-          checked={state.positionMap.complete}
-          onChange={(ev, data) => setComplete(data.checked)}
-        />
+        <h3>Map Settings</h3>
+        <div className={classes.settingGroup}>
+          <Switch
+            label={
+              <InfoLabel info="Indicates that all keys are in the map, and no fallback matching should occur.">
+                Complete
+              </InfoLabel>
+            }
+            checked={state.positionMap.complete}
+            onChange={(ev, data) => setComplete(data.checked)}
+          />
+          <Button onClick={resetMap}>Reset map</Button>
+
+          {renderConfirmModal()}
+        </div>
+        {/* <h3>Editor Settings</h3>
+        <div className={classes.settingGroup}>
+          <Switch
+            disabled
+            label={
+              <InfoLabel info="Add a new entry to map when all keys in the current one are assigned.">
+                Auto add
+              </InfoLabel>
+            }
+            checked={autoAdd}
+            onChange={(ev, data) => setAutoAdd(data.checked)}
+          />
+        </div> */}
       </div>
     </div>
   );
@@ -231,7 +267,12 @@ const PositionMapHeader: React.FC<PositionMapHeaderProps> = ({
           </th>
         );
       })}
-      <th></th>
+      <th
+        className={mergeClasses(
+          classes.mapListHeaderCell,
+          classes.mapListHeaderSpacer
+        )}
+      />
     </tr>
   );
 };
@@ -286,7 +327,7 @@ const PositionMapRow: React.FC<PositionMapRowProps> = ({
         );
       })}
 
-      <td className={classes.actions}>
+      <td>
         <Button icon={<DeleteRegular />} onClick={handleClick} />
       </td>
     </tr>
@@ -327,7 +368,23 @@ const useStyles = makeStyles({
   },
 
   settingsList: {
-    ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+    ...shorthands.padding(0, tokens.spacingHorizontalXL),
+
+    "& h3": {
+      marginTop: tokens.spacingVerticalXXL,
+      marginBottom: tokens.spacingVerticalS,
+      ...typographyStyles.subtitle2,
+    },
+
+    "& h3:first-child": {
+      marginTop: tokens.spacingVerticalM,
+    },
+  },
+
+  settingGroup: {
+    display: "flex",
+    flexFlow: "column",
+    gap: tokens.spacingVerticalM,
   },
 
   mapTable: {
@@ -348,12 +405,20 @@ const useStyles = makeStyles({
     outline: `2px solid ${tokens.colorNeutralBackground2}`,
   },
   mapListHeaderCell: {
+    boxSizing: "border-box",
     writingMode: "vertical-lr",
     textAlign: "end",
-    paddingInlineStart: tokens.spacingVerticalM,
-    paddingInlineEnd: tokens.spacingVerticalS,
-
+    width: "37px",
+    ...shorthands.padding(
+      tokens.spacingVerticalM,
+      tokens.spacingHorizontalXS,
+      tokens.spacingVerticalS,
+      "1px"
+    ),
     ...typographyStyles.subtitle2,
+  },
+  mapListHeaderSpacer: {
+    width: "45px",
   },
 
   mapListFooter: {
@@ -371,8 +436,16 @@ const useStyles = makeStyles({
   mapListRow: {
     borderRadius: tokens.borderRadiusMedium,
 
+    "& td": {
+      padding: "1px",
+    },
+
     "& td:not(:last-child)": {
       paddingRight: tokens.spacingHorizontalXS,
+    },
+
+    "& td:last-child": {
+      paddingLeft: tokens.spacingHorizontalM,
     },
 
     ":hover": {
@@ -389,11 +462,13 @@ const useStyles = makeStyles({
     backgroundColor: KEY_SELECTED_COLOR,
     outline: `2px solid ${KEY_SELECTED_COLOR}`,
   },
-  actions: {
-    paddingLeft: tokens.spacingHorizontalM,
-    paddingRight: tokens.spacingHorizontalXS,
-  },
 });
+
+function useConfirmReset() {
+  return useAsyncModal((resolve, props) => {
+    return <ResetPositionMapPrompt resolve={resolve} {...props} />;
+  });
+}
 
 function findPositionMap(positionMap: PositionMap, layoutLabel: string) {
   return positionMap.children.find(
@@ -460,6 +535,18 @@ function removePositionMapIndex(
       return {
         ...item,
         positions,
+      };
+    }),
+  };
+}
+
+function resetPositionMap(positionMap: PositionMap): PositionMap {
+  return {
+    ...positionMap,
+    children: positionMap.children.map((item) => {
+      return {
+        ...item,
+        positions: [],
       };
     }),
   };
