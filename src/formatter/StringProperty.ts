@@ -1,12 +1,12 @@
-import { Formattable } from "./Formattable";
+import { Formattable } from './Formattable';
 
 export class StringProperty implements Formattable {
-  constructor(
-    public name: string,
-    public value: string
-  ) {}
+    constructor(
+        public name: string,
+        public value: string,
+    ) {}
 
-  toString(): string {
-    return `${this.name} = "${this.value}";`;
-  }
+    toString(): string {
+        return `${this.name} = "${this.value}";`;
+    }
 }

@@ -1,7 +1,7 @@
-import { Formattable } from "./Formattable";
+import { Formattable } from './Formattable';
 
 export class Spacer implements Formattable {
-  toString(): string {
-    return "";
-  }
+    toString(): string {
+        return '';
+    }
 }
