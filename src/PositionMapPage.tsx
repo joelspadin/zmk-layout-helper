@@ -468,13 +468,18 @@ function assignPositionMapKey(
                 return item;
             }
 
-            const positions = item.positions.map((key, i) => {
+            const resized = [...item.positions];
+            while (resized.length <= mapIndex) {
+                resized.push(undefined);
+            }
+
+            const positions = resized.map((key, i) => {
                 if (i === mapIndex) {
                     return keyIndex === key ? undefined : keyIndex;
                 }
 
                 if (key === keyIndex) {
-                    return item.positions[mapIndex];
+                    return resized[mapIndex];
                 }
 
                 return key;
