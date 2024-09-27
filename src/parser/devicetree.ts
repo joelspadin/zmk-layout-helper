@@ -181,7 +181,7 @@ function getNodePathParts(node: Parser.SyntaxNode | null): string[] {
  */
 export function getProperty(node: Parser.SyntaxNode | Parser.SyntaxNode[], name: string): Parser.SyntaxNode | null {
     if (Array.isArray(node)) {
-        const props = node.map((n) => getProperty(n, name));
+        const props = node.map((n) => getProperty(n, name)).filter((n) => n !== null);
         return props.length ? props[props.length - 1] : null;
     }
 
