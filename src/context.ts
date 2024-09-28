@@ -5,9 +5,9 @@ import { EditState } from './types';
 
 export const ParserContext = createContext<Parser | undefined>(undefined);
 
-export type ImportCodeState = [string, Dispatch<SetStateAction<string>>];
+export type ImportCodeState = [string, Dispatch<SetStateAction<string>>, () => void];
 
-export const ImportCodeContext = createContext<ImportCodeState>(['', () => {}]);
+export const ImportCodeContext = createContext<ImportCodeState>(['', () => {}, () => {}]);
 
 export type EditStateState = [EditState, Dispatch<SetStateAction<EditState>>];
 
