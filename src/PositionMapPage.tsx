@@ -22,6 +22,7 @@ import { ResetPositionMapPrompt } from './ResetPositionMapPrompt';
 import { EditState, PhysicalLayout, PositionMap } from './types';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
+import { useLocalStorage } from './useLocalStorage';
 import { useScrollToEnd } from './useScrollToEnd';
 import { maxValue } from './utility';
 
@@ -46,8 +47,8 @@ export const PositionMapPage: React.FC = () => {
     const [state, setState] = useEditState();
 
     // TODO: remember editor settings
-    // const [autoAdd, setAutoAdd] = useState(true);
-    const [keySize, setKeySize] = useState(DEFAULT_KEY_SIZE);
+    // const [autoAdd, setAutoAdd] = useLocalStorage('auto-add-item', true);
+    const [keySize, setKeySize] = useLocalStorage('key-size', DEFAULT_KEY_SIZE);
 
     const listRef = useRef<HTMLDivElement>(null);
     const scrollToEnd = useScrollToEnd(listRef);

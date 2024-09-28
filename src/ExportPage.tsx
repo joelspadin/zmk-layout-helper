@@ -1,16 +1,16 @@
 import { Field, makeStyles, SpinButton, tokens } from '@fluentui/react-components';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { CodeBlock } from './CodeBlock';
 import { formatLayout } from './formatter/layout';
 import { useEditState } from './useEditState';
+import { useLocalStorage } from './useLocalStorage';
 
 export const ExportPage: React.FC = () => {
     const classes = useStyles();
     const [state] = useEditState();
 
-    // TODO: persist this value
-    const [columns, setColumns] = useState(16);
-    const [indent, setIndent] = useState(4);
+    const [columns, setColumns] = useLocalStorage('export-columns', 16);
+    const [indent, setIndent] = useLocalStorage('export-indent', 4);
 
     const devicetree = useMemo(
         () => formatLayout(state, { positionMapColumns: columns, indent }),
