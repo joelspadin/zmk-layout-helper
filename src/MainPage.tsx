@@ -1,10 +1,10 @@
-import { Tab, TabList, TabValue, makeStyles, tokens } from '@fluentui/react-components';
+import { Tab, TabList, makeStyles, tokens } from '@fluentui/react-components';
 import { useState } from 'react';
 import { ContextProviders } from './ContextProviders';
 import { ExportPage } from './ExportPage';
 import { ImportPage } from './ImportPage';
 import { PositionMapPage } from './PositionMapPage';
-import { useImportCode } from './useImportCode';
+import { useEditState } from './useEditState';
 
 export const MainPage: React.FC = () => {
     return (
@@ -14,17 +14,23 @@ export const MainPage: React.FC = () => {
     );
 };
 
+type TabValue = 'import' | 'positions' | 'export';
+
 const PageContents: React.FC = () => {
     const classes = useStyles();
 
     const [tab, setTab] = useState<TabValue>('import');
 
-    const [devicetree] = useImportCode();
-    const disabled = !devicetree;
+    const [state] = useEditState();
+    const disabled = state.layouts.length === 0;
 
     return (
         <>
-            <TabList selectedValue={tab} onTabSelect={(ev, data) => setTab(data.value)} className={classes.tabs}>
+            <TabList
+                selectedValue={tab}
+                onTabSelect={(ev, data) => setTab(data.value as TabValue)}
+                className={classes.tabs}
+            >
                 <Tab value="import">Import devicetree</Tab>
                 <Tab value="positions" disabled={disabled}>
                     Edit position map
@@ -35,7 +41,7 @@ const PageContents: React.FC = () => {
             </TabList>
 
             <div className={classes.content}>
-                {tab === 'import' && <ImportPage />}
+                {tab === 'import' && <ImportPage onImport={() => setTab('positions')} />}
                 {tab === 'positions' && <PositionMapPage />}
                 {tab === 'export' && <ExportPage />}
             </div>

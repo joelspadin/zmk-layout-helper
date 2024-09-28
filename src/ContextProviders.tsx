@@ -1,13 +1,18 @@
-import { PropsWithChildren, useMemo, useState } from 'react';
+import { PropsWithChildren, useCallback, useState } from 'react';
 import { DEFAULT_EDIT_STATE, EditStateContext, ImportCodeContext, ParseErrorContext, ParserContext } from './context';
 import { getParser, ParseError } from './parser/devicetree';
-import { parseLayouts } from './parser/layout';
+import { LayoutParseResult, parseLayouts } from './parser/layout';
 import { getNodeRange } from './parser/position';
 import { EditState, PhysicalLayout, PositionMap } from './types';
 import { use, wrapPromise } from './use';
 import { maxValue } from './utility';
 
 const parserPromise = wrapPromise(getParser());
+
+interface ParseResult {
+    parsed?: LayoutParseResult;
+    error?: ParseError;
+}
 
 export type ContextProvidersProps = PropsWithChildren;
 
@@ -16,25 +21,25 @@ export type ContextProvidersProps = PropsWithChildren;
  */
 export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) => {
     const parser = use(parserPromise);
-    const [devicetree, setDevicetree] = useState<string>('');
+    const [code, setCode] = useState<string>('');
 
     // TODO: add undo/redo for state changes
     const [state, setState] = useState<EditState>(DEFAULT_EDIT_STATE);
+    const [{ parsed, error }, setResult] = useState<ParseResult>({});
 
-    const [parsed, error] = useMemo(() => {
+    const parseCode = useCallback(() => {
         try {
-            const parsed = parseLayouts(parser, devicetree);
-
-            return [parsed, undefined];
+            const parsed = parseLayouts(parser, code);
+            setResult({ parsed });
         } catch (ex) {
             if (ex instanceof ParseError) {
-                console.error(getNodeRange(devicetree, ex.node).toString(), ex.message);
-                return [undefined, ex];
+                console.error(getNodeRange(code, ex.node).toString(), ex.message);
+                setResult({ error: ex });
             }
 
             throw ex;
         }
-    }, [parser, devicetree]);
+    }, [parser, code, setResult]);
 
     const [prevMap, setPrevMap] = useState<PositionMap>();
     const [prevLayouts, setPrevLayouts] = useState<PhysicalLayout[]>();
@@ -46,7 +51,7 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) 
 
     return (
         <ParserContext.Provider value={parser}>
-            <ImportCodeContext.Provider value={[devicetree, setDevicetree]}>
+            <ImportCodeContext.Provider value={[code, setCode, parseCode]}>
                 <EditStateContext.Provider value={[state, setState]}>
                     <ParseErrorContext.Provider value={error}>{children}</ParseErrorContext.Provider>
                 </EditStateContext.Provider>

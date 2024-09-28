@@ -2,11 +2,7 @@ import { Button, makeStyles, mergeClasses, shorthands, tokens, Tooltip, useTimeo
 import { HTMLAttributes, useCallback, useMemo, useState } from 'react';
 
 import { bundleIcon, CheckmarkFilled, CopyFilled, CopyRegular, FluentIconsProps } from '@fluentui/react-icons';
-import hljs from 'highlight.js';
-import dts from 'highlight.js/lib/languages/dts';
-import 'highlight.js/styles/github-dark.css';
-
-hljs.registerLanguage('dts', dts);
+import { highlight } from './highlight';
 
 const Copy = bundleIcon(CopyFilled, CopyRegular);
 
@@ -27,7 +23,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ children, language, classN
     const [copied, setCopied] = useState(false);
     const [setTimeout] = useTimeout();
 
-    const highlighted = useMemo(() => hljs.highlight(children, { language }).value, [children, language]);
+    const highlighted = useMemo(() => highlight(children, { language }).value, [children, language]);
 
     const copyCode = useCallback(() => {
         navigator.clipboard.writeText(children);
