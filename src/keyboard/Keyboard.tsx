@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, tokens, typographyStyles } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, shorthands, tokens, typographyStyles } from '@fluentui/react-components';
 import { CSSProperties, useMemo } from 'react';
 import { ColorScale, KEY_HOVER_COLOR } from '../colors';
 import { KeyAttributes, PhysicalLayout, Point, PositionMapItem } from '../types';
@@ -6,6 +6,8 @@ import { Key } from './Key';
 
 const DEFAULT_KEY_SIZE = 38;
 const DEFAULT_GAP_SIZE = 4;
+
+const SMALL_KEY_SIZE = 32;
 
 export interface KeyData {
     keyIndex?: number;
@@ -48,6 +50,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
     keySize ??= DEFAULT_KEY_SIZE;
     gapSize ??= DEFAULT_GAP_SIZE;
     const unitSize = keySize + gapSize;
+    const small = keySize <= SMALL_KEY_SIZE;
 
     const bounds = useMemo(() => {
         return getLayoutBounds(layout, unitSize, gapSize);
@@ -70,7 +73,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
 
                     return (
                         <Key
-                            className={classes.key}
+                            className={mergeClasses(classes.key, small && classes.keySmall)}
                             key={keyIndex}
                             style={style}
                             color={color}
@@ -87,7 +90,9 @@ export const Keyboard: React.FC<KeyboardProps> = ({
             </div>
             {extraKeys.length > 0 && (
                 <>
-                    <h3 className={classes.extraKeysHeader}>Unused positions</h3>
+                    <h3 className={mergeClasses(classes.extraKeysHeader, small && classes.extraKeysSmall)}>
+                        Unused positions
+                    </h3>
                     <div className={classes.extraKeysList} style={getExtraKeysStyle(bounds, gapSize)}>
                         {extraKeys.map((keyIndex) => {
                             const mapIndex = getMapIndex(keyIndex, positionMap);
@@ -122,7 +127,7 @@ const useStyles = makeStyles({
         display: 'flex',
         justifyContent: 'center',
         marginTop: 0,
-        marginBottom: tokens.spacingVerticalM,
+        marginBottom: tokens.spacingVerticalS,
         ...typographyStyles.subtitle2,
     },
     keyboard: {
@@ -134,10 +139,18 @@ const useStyles = makeStyles({
             outline: `2px solid ${KEY_HOVER_COLOR}`,
         },
     },
+    keySmall: {
+        borderRadius: tokens.borderRadiusSmall,
+    },
     extraKeysHeader: {
         ...typographyStyles.body2,
         marginTop: tokens.spacingVerticalM,
         marginBottom: tokens.spacingVerticalS,
+    },
+    extraKeysSmall: {
+        ...typographyStyles.body1,
+        marginTop: tokens.spacingVerticalS,
+        marginBottom: tokens.spacingVerticalXS,
     },
     extraKeysList: {
         display: 'flex',

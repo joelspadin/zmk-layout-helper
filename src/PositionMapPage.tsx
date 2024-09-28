@@ -7,6 +7,7 @@ import {
     MessageBar,
     MessageBarBody,
     shorthands,
+    Slider,
     SpinButton,
     Switch,
     tokens,
@@ -16,13 +17,24 @@ import { AddRegular, DeleteRegular } from '@fluentui/react-icons';
 import { HTMLAttributes, MouseEventHandler, useCallback, useMemo, useRef, useState } from 'react';
 import { ColorScale, getColorScale, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from './colors';
 import { Key } from './keyboard/Key';
-import { Keyboard } from './keyboard/Keyboard';
+import { Keyboard, KeyboardProps } from './keyboard/Keyboard';
 import { ResetPositionMapPrompt } from './ResetPositionMapPrompt';
 import { EditState, PhysicalLayout, PositionMap } from './types';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
 import { useScrollToEnd } from './useScrollToEnd';
 import { maxValue } from './utility';
+
+const KEY_SIZES: Record<number, Partial<KeyboardProps>> = {
+    [0]: { keySize: 27, gapSize: 3 },
+    [1]: { keySize: 32, gapSize: 4 },
+    [2]: { keySize: 38, gapSize: 4 },
+    [3]: { keySize: 44, gapSize: 4 },
+};
+
+const MIN_KEY_SIZE = 0;
+const MAX_KEY_SIZE = 3;
+const DEFAULT_KEY_SIZE = 2;
 
 export const PositionMapPage: React.FC = () => {
     const classes = useStyles();
@@ -31,8 +43,11 @@ export const PositionMapPage: React.FC = () => {
 
     const [selectedMapIndex, setSelectedMapIndex] = useState<number>();
     const [hoverMapIndex, setHoverMapIndex] = useState<number>();
-    // const [autoAdd, setAutoAdd] = useState(true);
     const [state, setState] = useEditState();
+
+    // TODO: remember editor settings
+    // const [autoAdd, setAutoAdd] = useState(true);
+    const [keySize, setKeySize] = useState(DEFAULT_KEY_SIZE);
 
     const listRef = useRef<HTMLDivElement>(null);
     const scrollToEnd = useScrollToEnd(listRef);
@@ -44,6 +59,8 @@ export const PositionMapPage: React.FC = () => {
     );
 
     const gradient = useMemo(() => getColorScale().domain([0, length]), [length]);
+
+    const keyProps = KEY_SIZES[keySize];
 
     const setKeyCount = useCallback(
         (keyCount: number) => {
@@ -154,6 +171,7 @@ export const PositionMapPage: React.FC = () => {
                                 hoverMapIndex={hoverMapIndex}
                                 onKeySelected={(data) => setMapKey(layout.label, selectedMapIndex, data.keyIndex)}
                                 onKeyHovered={(data) => setHoverMapIndex(data?.mapIndex)}
+                                {...keyProps}
                             />
                         );
                     })}
@@ -217,19 +235,28 @@ export const PositionMapPage: React.FC = () => {
 
                     {renderConfirmModal()}
                 </div>
-                {/* <h3>Editor settings</h3>
-        <div className={classes.settingGroup}>
-          <Switch
-            disabled
-            label={
-              <InfoLabel info="Add a new entry to map when all keys in the current one are assigned.">
-                Auto add
-              </InfoLabel>
-            }
-            checked={autoAdd}
-            onChange={(ev, data) => setAutoAdd(data.checked)}
-          />
-        </div> */}
+                <h3>Editor settings</h3>
+                <div className={classes.settingGroup}>
+                    <Field label="Key size">
+                        <Slider
+                            value={keySize}
+                            onChange={(ev, data) => setKeySize(data.value)}
+                            min={MIN_KEY_SIZE}
+                            max={MAX_KEY_SIZE}
+                            step={1}
+                        />
+                    </Field>
+                    {/* <Switch
+                        disabled
+                        label={
+                            <InfoLabel info="Add a new entry to map when all keys in the current one are assigned.">
+                                Auto add
+                            </InfoLabel>
+                        }
+                        checked={autoAdd}
+                        onChange={(ev, data) => setAutoAdd(data.checked)}
+                    /> */}
+                </div>
             </div>
         </div>
     );
@@ -381,6 +408,11 @@ const useStyles = makeStyles({
         writingMode: 'vertical-lr',
         textAlign: 'end',
         width: '37px',
+        maxHeight: '160px',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+
         ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalXS, tokens.spacingVerticalS, '1px'),
         ...typographyStyles.subtitle2,
     },
