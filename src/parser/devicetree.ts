@@ -65,6 +65,22 @@ export function findCompatible(root: Parser.SyntaxNode, compatible: string): Par
 /**
  * Find devicetree nodes with the given path.
  */
+export function findByLabel(root: Parser.SyntaxNode, label: string): Parser.SyntaxNode[] {
+    if (!label) {
+        return [];
+    }
+
+    const query = Devicetree.query('(node) @node');
+    const matches = query.matches(root);
+
+    const nodes = getMatchCaptures(matches, 'node');
+
+    return nodes.filter((n) => getNodeLabel(n) === label);
+}
+
+/**
+ * Find devicetree nodes with the given path.
+ */
 export function findByPath(root: Parser.SyntaxNode, path: string): Parser.SyntaxNode[] {
     if (!path) {
         return [];
@@ -108,6 +124,14 @@ export function findBySameNode(root: Parser.SyntaxNode, node: Parser.SyntaxNode)
     return [...findByPath(root, path), ...findByReference(root, label)].sort((a, b) => a.startIndex - b.startIndex);
 }
 
+export function getRoot(node: Parser.SyntaxNode): Parser.SyntaxNode {
+    while (node.parent) {
+        node = node.parent;
+    }
+
+    return node;
+}
+
 /**
  * Get the devicetree node that contains the given syntax node.
  */
@@ -119,10 +143,17 @@ export function getContainingNode(node: Parser.SyntaxNode | null): Parser.Syntax
 }
 
 /**
- * Get the child nodes of a devicetree node.
+ * Get the child nodes of a devicetree node. This may contain multiple instances
+ * that represent the same devicetree node if the same child is defined multiple
+ * times.
  */
 export function getChildNodes(node: Parser.SyntaxNode): Parser.SyntaxNode[] {
-    return node.namedChildren.filter((n) => n.type === 'node');
+    const nodes = findBySameNode(getRoot(node), node);
+
+    return nodes
+        .map((n) => n.namedChildren)
+        .flat()
+        .filter((n) => n.type === 'node');
 }
 
 /**
@@ -169,7 +200,19 @@ function getNodePathParts(node: Parser.SyntaxNode | null): string[] {
         return [];
     }
 
-    return [...getNodePathParts(dtnode.parent), getNodeName(dtnode)];
+    const name = getNodeName(dtnode);
+
+    if (name.startsWith('&')) {
+        const label = name.substring(1);
+        const ref = findByLabel(getRoot(dtnode), label).pop();
+        if (ref) {
+            return getNodePathParts(ref);
+        }
+
+        throw new ParseError(dtnode, `Could not find node with label "${label}"`);
+    }
+
+    return [...getNodePathParts(dtnode.parent), name];
 }
 
 /**
