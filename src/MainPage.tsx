@@ -75,7 +75,11 @@ const HeaderLinks: React.FC = () => {
         <div className={mergeClasses(classes.links, small && classes.smallLinks)}>
             <Menu positioning="below" persistOnItemClick>
                 <MenuTrigger>
-                    <Button appearance="subtle" icon={small ? <WrenchFilled /> : undefined} title="Other tools">
+                    <Button
+                        appearance="subtle"
+                        icon={small ? <WrenchFilled /> : undefined}
+                        title={small ? 'Other tools' : ''}
+                    >
                         {small ? '' : 'Other tools'}
                     </Button>
                 </MenuTrigger>
@@ -102,6 +106,7 @@ const HeaderLinks: React.FC = () => {
                 target="_blank"
                 appearance="subtle"
                 icon={<GitHubIcon />}
+                title={small ? 'Open in GitHub' : ''}
             >
                 {small ? '' : 'GitHub'}
             </Button>
