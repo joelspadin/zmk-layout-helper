@@ -1,3 +1,5 @@
+import { PhysicalLayout, PositionMap } from './types';
+
 /**
  * Get the maximum value of the results of a callback on a list of items.
  */
@@ -43,4 +45,14 @@ export function chunks<T>(items: readonly T[], chunkSize: number): T[][] {
     }
 
     return result;
+}
+
+export function getMinKeyCount(layouts: PhysicalLayout[], positionMap: PositionMap): number {
+    const layoutKeyCount = maxValue(layouts, (item) => item.keys.length);
+    const maxUsedKey = Math.max(
+        0,
+        ...positionMap.children.map((map) => map.positions.filter((p) => p !== undefined)).flat(),
+    );
+
+    return Math.max(layoutKeyCount, maxUsedKey + 1);
 }

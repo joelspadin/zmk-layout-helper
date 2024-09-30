@@ -5,7 +5,7 @@ import { LayoutParseResult, parseLayouts } from './parser/layout';
 import { getNodeRange } from './parser/position';
 import { EditState, PhysicalLayout, PositionMap } from './types';
 import { use, wrapPromise } from './use';
-import { maxValue } from './utility';
+import { getMinKeyCount } from './utility';
 
 const parserPromise = wrapPromise(getParser());
 
@@ -92,7 +92,7 @@ function makeInitialState(layouts: PhysicalLayout[] | undefined, positionMap: Po
         });
     }
 
-    const keyCount = maxValue(newLayouts, (item) => item.keys.length);
+    const keyCount = getMinKeyCount(newLayouts, newMap);
 
     return {
         layouts: newLayouts,

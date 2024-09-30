@@ -19,12 +19,12 @@ import { ColorScale, getColorScale, KEY_HOVER_COLOR, KEY_SELECTED_COLOR } from '
 import { Key } from './keyboard/Key';
 import { Keyboard, KeyboardProps } from './keyboard/Keyboard';
 import { ResetPositionMapPrompt } from './ResetPositionMapPrompt';
-import { EditState, PhysicalLayout, PositionMap } from './types';
+import { PhysicalLayout, PositionMap } from './types';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
 import { useLocalStorage } from './useLocalStorage';
 import { useScrollToEnd } from './useScrollToEnd';
-import { maxValue } from './utility';
+import { getMinKeyCount, maxValue } from './utility';
 
 const KEY_SIZES: Record<number, Partial<KeyboardProps>> = {
     [0]: { keySize: 27, gapSize: 3 },
@@ -53,7 +53,7 @@ export const PositionMapPage: React.FC = () => {
     const listRef = useRef<HTMLDivElement>(null);
     const scrollToEnd = useScrollToEnd(listRef);
 
-    const minKeyCount = useMemo(() => getMinKeyCount(state), [state]);
+    const minKeyCount = useMemo(() => getMinKeyCount(state.layouts, state.positionMap), [state]);
     const length = useMemo(
         () => maxValue(state.positionMap.children, (item) => item.positions.length),
         [state.positionMap.children],
@@ -476,16 +476,6 @@ function findPositionMap(positionMap: PositionMap, layoutLabel: string) {
 
 function findLayout(layouts: PhysicalLayout[], layoutLabel: string) {
     return layouts.find((item) => item.label === layoutLabel);
-}
-
-function getMinKeyCount(state: EditState) {
-    const layoutKeyCount = maxValue(state.layouts, (item) => item.keys.length);
-    const maxUsedKey = Math.max(
-        0,
-        ...state.positionMap.children.map((map) => map.positions.filter((p) => p !== undefined)).flat(),
-    );
-
-    return Math.max(layoutKeyCount, maxUsedKey + 1);
 }
 
 function assignPositionMapKey(
