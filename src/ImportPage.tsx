@@ -2,6 +2,9 @@ import {
     Button,
     makeStyles,
     mergeClasses,
+    MessageBar,
+    MessageBarBody,
+    shorthands,
     tokens,
     useFocusableGroup,
     useUncontrolledFocus,
@@ -11,9 +14,11 @@ import { useCallback } from 'react';
 import Editor from 'react-simple-code-editor';
 import { highlight } from './highlight';
 import { ImportPrompt } from './ImportPrompt';
+import { LineNumbers } from './LineNumbers';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
 import { useImportCode } from './useImportCode';
+import { useParseError } from './useParseError';
 
 export interface ImportPageProps {
     onImport?: () => void;
@@ -21,6 +26,7 @@ export interface ImportPageProps {
 
 export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
     const classes = useStyles();
+    const error = useParseError();
     const [code, setCode, importCode] = useImportCode();
     const [state] = useEditState();
 
@@ -49,8 +55,16 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
                     </Button>
                     {renderConfirmModal()}
                 </div>
+                {error && (
+                    <MessageBar intent="error" className={classes.error}>
+                        <MessageBarBody>
+                            Line {error.node.startPosition.row + 1}: {error.message}
+                        </MessageBarBody>
+                    </MessageBar>
+                )}
                 <div className={classes.editorBorder}>
                     <div className={classes.editorWrapper} {...focusGroup}>
+                        <LineNumbers code={code} className={mergeClasses('hljs', classes.lineNumbers)} />
                         <Editor
                             className={mergeClasses('hljs', classes.editor)}
                             value={code}
@@ -72,45 +86,58 @@ const useStyles = makeStyles({
     root: {
         display: 'flex',
         justifyContent: 'center',
-        marginTop: tokens.spacingVerticalM,
     },
     content: {
+        display: 'grid',
+        gridTemplate: `
+            "actions" max-content
+            "error" max-content
+            "code" auto / auto
+        `,
         width: '800px',
         maxWidth: 'calc(100vw - 48px)',
+        height: 'calc(100vh - 48px)',
+        paddingTop: tokens.spacingVerticalM,
+        paddingBottom: tokens.spacingVerticalM,
+        boxSizing: 'border-box',
     },
     actions: {
+        gridArea: 'actions',
         display: 'flex',
         justifyContent: 'end',
         marginBottom: tokens.spacingVerticalM,
     },
+    error: {
+        gridArea: 'error',
+        marginBottom: tokens.spacingVerticalM,
+    },
     editorBorder: {
-        borderRadius: tokens.borderRadiusMedium,
+        gridArea: 'code',
         overflow: 'hidden',
+        borderRadius: tokens.borderRadiusMedium,
+        boxShadow: tokens.shadow4,
     },
     editorWrapper: {
-        '--editor-height': `calc(100vh - 48px - 32px - ${tokens.spacingVerticalM} * 3)`,
-
+        display: 'grid',
+        gridTemplate: 'auto / max-content auto',
         position: 'relative',
-        maxHeight: 'var(--editor-height)',
+        height: '100%',
         overflow: 'auto',
+        fontFamily: tokens.fontFamilyMonospace,
 
         backgroundColor: tokens.colorNeutralBackground3,
         scrollbarColor: `${tokens.colorNeutralForeground3} ${tokens.colorNeutralBackground3}`,
     },
     editor: {
-        minHeight: 'var(--editor-height)',
-        fontFamily: tokens.fontFamilyMonospace,
+        minHeight: '100%',
 
         '& textarea': {
             outline: 0,
         },
     },
-    placeholder: {
-        position: 'absolute',
-        top: tokens.spacingVerticalM,
-        left: 0,
-        right: 0,
-        textAlign: 'center',
+    lineNumbers: {
+        ...shorthands.padding('12px', tokens.spacingHorizontalL),
+        color: tokens.colorNeutralForegroundDisabled,
     },
 });
 
