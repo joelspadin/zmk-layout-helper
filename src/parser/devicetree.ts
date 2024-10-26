@@ -1,3 +1,4 @@
+import treeSitterDevicetreeUrl from 'tree-sitter-devicetree/tree-sitter-devicetree.wasm?url';
 import Parser from 'web-tree-sitter';
 import treeSitterUrl from 'web-tree-sitter/tree-sitter.wasm?url';
 
@@ -13,7 +14,7 @@ async function initParser(): Promise<void> {
         },
     });
 
-    Devicetree = await Parser.Language.load('tree-sitter-devicetree.wasm');
+    Devicetree = await Parser.Language.load(treeSitterDevicetreeUrl);
 }
 
 export async function getParser(): Promise<Parser> {
