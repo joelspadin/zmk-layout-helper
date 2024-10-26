@@ -1,5 +1,5 @@
-import { Field, makeStyles, SpinButton, tokens } from '@fluentui/react-components';
-import { useMemo } from 'react';
+import { Field, makeStyles, SpinButton, Switch, tokens } from '@fluentui/react-components';
+import { useMemo, useState } from 'react';
 import { CodeBlock } from './CodeBlock';
 import { formatLayout } from './formatter/layout';
 import { useEditState } from './useEditState';
@@ -13,10 +13,11 @@ export const ExportPage: React.FC = () => {
 
     const [columns, setColumns] = useLocalStorage('export-columns', 16);
     const [indent, setIndent] = useLocalStorage('export-indent', 4);
+    const [includeLayout, setIncludeLayout] = useState(format !== 'devicetree');
 
     const devicetree = useMemo(
-        () => formatLayout(state, { positionMapColumns: columns, includeLayout: format !== 'devicetree', indent }),
-        [state, format, columns, indent],
+        () => formatLayout(state, { positionMapColumns: columns, includeLayout, indent }),
+        [state, includeLayout, columns, indent],
     );
 
     // TODO: add download button
@@ -51,6 +52,13 @@ export const ExportPage: React.FC = () => {
                             data-form-type="other"
                         />
                     </Field>
+
+                    <Switch
+                        label="Export layouts"
+                        labelPosition="above"
+                        checked={includeLayout}
+                        onChange={(ev, data) => setIncludeLayout(data.checked)}
+                    />
                 </div>
 
                 <CodeBlock language="dts" className={classes.code}>
