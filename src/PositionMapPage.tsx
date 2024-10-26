@@ -154,31 +154,29 @@ export const PositionMapPage: React.FC = () => {
     return (
         <div className={classes.root}>
             {/* Keyboard layout list */}
-            <div className={classes.listWrap}>
-                <div className={classes.layoutList}>
-                    {state.layouts.map((layout) => {
-                        const map = findPositionMap(state.positionMap, layout.label);
+            <div className={mergeClasses(classes.list, classes.layoutList)}>
+                {state.layouts.map((layout) => {
+                    const map = findPositionMap(state.positionMap, layout.label);
 
-                        return (
-                            <Keyboard
-                                key={layout.path}
-                                layout={layout}
-                                positionMap={map}
-                                keyCount={state.keyCount}
-                                colorScale={gradient}
-                                selectedMapIndex={selectedMapIndex}
-                                hoverMapIndex={hoverMapIndex}
-                                onKeySelected={(data) => setMapKey(layout.label, selectedMapIndex, data.keyIndex)}
-                                onKeyHovered={(data) => setHoverMapIndex(data?.mapIndex)}
-                                {...keyProps}
-                            />
-                        );
-                    })}
-                </div>
+                    return (
+                        <Keyboard
+                            key={layout.path}
+                            layout={layout}
+                            positionMap={map}
+                            keyCount={state.keyCount}
+                            colorScale={gradient}
+                            selectedMapIndex={selectedMapIndex}
+                            hoverMapIndex={hoverMapIndex}
+                            onKeySelected={(data) => setMapKey(layout.label, selectedMapIndex, data.keyIndex)}
+                            onKeyHovered={(data) => setHoverMapIndex(data?.mapIndex)}
+                            {...keyProps}
+                        />
+                    );
+                })}
             </div>
 
             {/* Position map list */}
-            <div ref={listRef} className={mergeClasses(classes.listWrap, classes.mapList)}>
+            <div ref={listRef} className={mergeClasses(classes.list, classes.mapList)}>
                 <table className={classes.mapTable}>
                     <thead className={mergeClasses(classes.sticky, classes.mapListHeader)}>
                         <PositionMapHeader layouts={state.layouts} positionMap={state.positionMap} />
@@ -211,7 +209,7 @@ export const PositionMapPage: React.FC = () => {
             </div>
 
             {/* Settings */}
-            <div className={mergeClasses(classes.listWrap, classes.settingsList)}>
+            <div className={mergeClasses(classes.list, classes.settingsList)}>
                 <h3>Map settings</h3>
                 <div className={classes.settingGroup}>
                     <Field label="Key count">
@@ -337,6 +335,7 @@ const useStyles = makeStyles({
         display: 'grid',
         gridTemplate: 'auto / fit-content(800px) max-content max-content',
         width: 'max-content',
+        height: 'calc(100vh - 44px)',
 
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -344,9 +343,7 @@ const useStyles = makeStyles({
     error: {
         marginTop: tokens.spacingVerticalM,
     },
-    listWrap: {
-        boxSizing: 'border-box',
-        maxHeight: 'calc(100vh - 44px)',
+    list: {
         overflowX: 'hidden',
         overflowY: 'auto',
         scrollbarGutter: 'stable',
@@ -358,7 +355,7 @@ const useStyles = makeStyles({
         rowGap: tokens.spacingVerticalXXL,
         alignItems: 'start',
         justifyContent: 'center',
-        ...shorthands.margin(tokens.spacingVerticalM, '48px'),
+        ...shorthands.padding(tokens.spacingVerticalM, '48px'),
     },
 
     mapList: {
