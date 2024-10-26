@@ -145,9 +145,7 @@ export const PositionMapPage: React.FC = () => {
         return (
             <div className={classes.root}>
                 <MessageBar intent="error" shape="rounded" className={classes.error}>
-                    <MessageBarBody>
-                        The devicetree data could not be parsed or contains no physical layout nodes.
-                    </MessageBarBody>
+                    <MessageBarBody>The data could not be parsed or contains no physical layout nodes.</MessageBarBody>
                 </MessageBar>
             </div>
         );

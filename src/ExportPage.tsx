@@ -3,18 +3,20 @@ import { useMemo } from 'react';
 import { CodeBlock } from './CodeBlock';
 import { formatLayout } from './formatter/layout';
 import { useEditState } from './useEditState';
+import { useImportState } from './useImportState';
 import { useLocalStorage } from './useLocalStorage';
 
 export const ExportPage: React.FC = () => {
     const classes = useStyles();
     const [state] = useEditState();
+    const { format } = useImportState();
 
     const [columns, setColumns] = useLocalStorage('export-columns', 16);
     const [indent, setIndent] = useLocalStorage('export-indent', 4);
 
     const devicetree = useMemo(
-        () => formatLayout(state, { positionMapColumns: columns, indent }),
-        [state, columns, indent],
+        () => formatLayout(state, { positionMapColumns: columns, includeLayout: format !== 'devicetree', indent }),
+        [state, format, columns, indent],
     );
 
     // TODO: add download button

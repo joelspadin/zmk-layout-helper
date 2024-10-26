@@ -3,7 +3,7 @@ import { dtnum } from '../utility';
 import { Formattable, getIndent } from './Formattable';
 
 function keystr(strings: TemplateStringsArray, ...args: number[]) {
-    const widths = [3, 3, 4, 4, 7, 6, 6];
+    const widths = [3, 3, 4, 4, 7, 5, 5];
 
     let result = strings[0];
 
@@ -34,7 +34,7 @@ export class KeyAttributesProperty implements Formattable {
             .join(`\n${prefix}, `);
 
         return (
-            `keys  //${prefix}                 w   h    x    y     rot     rx     ry` +
+            `keys  //${prefix}                 w   h    x    y     rot    rx    ry` +
             `\n${prefix}= ` +
             items +
             `\n${prefix};`

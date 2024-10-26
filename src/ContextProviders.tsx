@@ -1,8 +1,8 @@
-import { PropsWithChildren, useCallback, useState } from 'react';
+import { PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import { DEFAULT_EDIT_STATE, EditStateContext, ImportCodeContext, ParseErrorContext, ParserContext } from './context';
-import { getParser, ParseError } from './parser/devicetree';
-import { LayoutParseResult, parseLayouts } from './parser/layout';
-import { EditState, PhysicalLayout, PositionMap } from './types';
+import { getParser } from './parser/devicetree';
+import { LayoutParseResult, parseLayoutsDevicetree, parseLayoutsKle } from './parser/layout';
+import { EditState, ImportFormat, PhysicalLayout, PositionMap } from './types';
 import { use, wrapPromise } from './use';
 import { getMinKeyCount } from './utility';
 
@@ -10,8 +10,10 @@ const dtsParserPromise = wrapPromise(getParser());
 
 interface ParseResult {
     parsed?: LayoutParseResult;
-    error?: ParseError;
+    error?: Error;
 }
+
+type ParserFunction = (code: string) => LayoutParseResult;
 
 export type ContextProvidersProps = PropsWithChildren;
 
@@ -20,25 +22,33 @@ export type ContextProvidersProps = PropsWithChildren;
  */
 export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) => {
     const dtsParser = use(dtsParserPromise);
+    const [format, setFormat] = useState<ImportFormat>('devicetree');
     const [code, setCode] = useState<string>('');
 
     // TODO: add undo/redo for state changes
     const [state, setState] = useState<EditState>(DEFAULT_EDIT_STATE);
     const [{ parsed, error }, setResult] = useState<ParseResult>({});
 
-    const parseCode = useCallback(() => {
+    const parseCode: ParserFunction = useMemo(() => {
+        switch (format) {
+            case 'devicetree':
+                return (c: string) => parseLayoutsDevicetree(dtsParser, c);
+
+            case 'kle':
+                return parseLayoutsKle;
+        }
+    }, [format, dtsParser]);
+
+    const importCode = useCallback(() => {
         try {
-            const parsed = parseLayouts(dtsParser, code);
-            setResult({ parsed });
+            setResult({ parsed: parseCode(code) });
         } catch (ex) {
-            if (ex instanceof ParseError) {
-                console.error(ex.node.startPosition, ex.node.endPosition, ex.message);
+            if (ex instanceof Error) {
                 setResult({ error: ex });
             }
-
             throw ex;
         }
-    }, [dtsParser, code, setResult]);
+    }, [code, parseCode, setResult]);
 
     const [prevMap, setPrevMap] = useState<PositionMap>();
     const [prevLayouts, setPrevLayouts] = useState<PhysicalLayout[]>();
@@ -50,7 +60,7 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) 
 
     return (
         <ParserContext.Provider value={dtsParser}>
-            <ImportCodeContext.Provider value={[code, setCode, parseCode]}>
+            <ImportCodeContext.Provider value={{ format, setFormat, code, setCode, importCode }}>
                 <EditStateContext.Provider value={[state, setState]}>
                     <ParseErrorContext.Provider value={error}>{children}</ParseErrorContext.Provider>
                 </EditStateContext.Provider>

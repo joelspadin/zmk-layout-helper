@@ -1,13 +1,18 @@
 import { createContext, Dispatch, SetStateAction } from 'react';
 import Parser from 'web-tree-sitter';
-import { ParseError } from './parser/devicetree';
-import { EditState } from './types';
+import { EditState, ImportState } from './types';
 
 export const ParserContext = createContext<Parser | undefined>(undefined);
 
-export type ImportCodeState = [string, Dispatch<SetStateAction<string>>, () => void];
+const STUB_IMPORT_STATE: ImportState = {
+    format: 'devicetree',
+    setFormat: () => {},
+    code: '',
+    setCode: () => {},
+    importCode: () => {},
+};
 
-export const ImportCodeContext = createContext<ImportCodeState>(['', () => {}, () => {}]);
+export const ImportCodeContext = createContext<ImportState>(STUB_IMPORT_STATE);
 
 export type EditStateState = [EditState, Dispatch<SetStateAction<EditState>>];
 
@@ -24,4 +29,4 @@ export const DEFAULT_EDIT_STATE: EditState = {
 
 export const EditStateContext = createContext<EditStateState>([DEFAULT_EDIT_STATE, () => {}]);
 
-export const ParseErrorContext = createContext<ParseError | undefined>(undefined);
+export const ParseErrorContext = createContext<Error | undefined>(undefined);

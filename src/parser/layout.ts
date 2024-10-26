@@ -8,17 +8,18 @@ import {
     getNodeLabel,
     getNodePath,
     getPropertyValue,
-    ParseError,
     parseNumber,
     parsePhandle,
 } from './devicetree';
+import { ParseError } from './error';
+import { KleKey, KleKeyboard, parseKle } from './kle';
 
 export interface LayoutParseResult {
     layouts: PhysicalLayout[];
     positionMap?: PositionMap;
 }
 
-export function parseLayouts(parser: Parser, text: string): LayoutParseResult {
+export function parseLayoutsDevicetree(parser: Parser, text: string): LayoutParseResult {
     const tree = parser.parse(text);
     const root = tree.rootNode;
 
@@ -56,13 +57,13 @@ function parseKeyAttributesArray(keys: Parser.SyntaxNode[]) {
 
     for (const chunk of chunks(keys, KEY_ATTRS_SIZE)) {
         if (chunk.length !== KEY_ATTRS_SIZE) {
-            throw new ParseError(chunk[chunk.length - 1], 'Expected &key_physical_attrs followed by 7 numbers');
+            throw new ParseError('Expected &key_physical_attrs followed by 7 numbers', chunk[chunk.length - 1]);
         }
 
         const [phandle, width, height, x, y, rot, rx, ry] = chunk;
 
         if (parsePhandle(phandle) !== 'key_physical_attrs') {
-            throw new ParseError(phandle, 'Expected &key_physical_attrs');
+            throw new ParseError('Expected &key_physical_attrs', phandle);
         }
 
         result.push({
@@ -96,4 +97,35 @@ function parsePositionMapItem(item: Parser.SyntaxNode): PositionMapItem {
         physicalLayout: getPropertyValue(item, 'physical-layout', 'phandle') || '',
         positions: getPropertyValue(item, 'positions', 'array') ?? [],
     };
+}
+
+export function parseLayoutsKle(text: string): LayoutParseResult {
+    const keyboards = parseKle(text);
+
+    return {
+        layouts: keyboards.map(getKlePhysicalLayout),
+    };
+}
+
+function getKlePhysicalLayout(keyboard: KleKeyboard, index: number): PhysicalLayout {
+    return {
+        path: `/layout_${index}`,
+        label: `layout_${index}`,
+        displayName: keyboard.name || `Layout ${index}`,
+        keys: getKleKeyAttributes(keyboard.keys),
+        transform: '',
+        kscan: '',
+    };
+}
+
+function getKleKeyAttributes(keys: readonly KleKey[]): KeyAttributes[] {
+    return keys.map((key) => {
+        return {
+            position: [key.x, key.y],
+            width: key.w,
+            height: key.h,
+            origin: [key.rx, key.ry],
+            rotation: key.r,
+        };
+    });
 }

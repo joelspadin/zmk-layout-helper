@@ -1,9 +1,11 @@
 import {
     Button,
+    Field,
     makeStyles,
     mergeClasses,
     MessageBar,
     MessageBarBody,
+    Select,
     shorthands,
     tokens,
     useFocusableGroup,
@@ -15,9 +17,11 @@ import Editor from 'react-simple-code-editor';
 import { highlight } from './highlight';
 import { ImportPrompt } from './ImportPrompt';
 import { LineNumbers } from './LineNumbers';
+import { ParseError } from './parser/error';
+import { ImportFormat } from './types';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
-import { useImportCode } from './useImportCode';
+import { useImportState } from './useImportState';
 import { useParseError } from './useParseError';
 
 export interface ImportPageProps {
@@ -27,17 +31,13 @@ export interface ImportPageProps {
 export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
     const classes = useStyles();
     const error = useParseError();
-    const [code, setCode, importCode] = useImportCode();
+    const { format, setFormat, code, setCode, importCode } = useImportState();
     const [state] = useEditState();
-
-    // TODO: add a format selector? (devicetree/KLE JSON/QMK JSON)
-    // TODO: highlight where errors occurred.
+    const [confirmImport, renderConfirmModal] = useConfirmImport();
 
     // Make sure pressing tab inside the editor inserts whitespace instead of moving focus.
     const focusGroup = useFocusableGroup({ tabBehavior: 'limited-trap-focus' });
     const uncontrolledFocus = useUncontrolledFocus();
-
-    const [confirmImport, renderConfirmModal] = useConfirmImport();
 
     const handleImport = useCallback(async () => {
         if (state.layouts.length === 0 || (await confirmImport())) {
@@ -46,19 +46,38 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
         }
     }, [state.layouts.length, confirmImport, importCode, onImport]);
 
+    const formatData = FORMAT_DATA[format];
+
+    // TODO: highlight where errors occurred.
     return (
         <div className={classes.root}>
             <div className={classes.content}>
-                <div className={classes.actions}>
+                <div className={classes.header}>
+                    <div className={classes.settings}>
+                        <Field label="Format" orientation="horizontal">
+                            <Select
+                                value={format}
+                                appearance="underline"
+                                onChange={(ev, data) => setFormat(data.value as ImportFormat)}
+                            >
+                                <option value="devicetree">Devicetree</option>
+                                <option value="kle">KLE JSON</option>
+                            </Select>
+                        </Field>
+                    </div>
+
                     <Button appearance="primary" disabled={!code} icon={<ArrowImportRegular />} onClick={handleImport}>
-                        Import devicetree
+                        Import {formatData.name}
                     </Button>
+
                     {renderConfirmModal()}
                 </div>
+                {formatData.note && <p className={classes.note}>{formatData.note}</p>}
                 {error && (
                     <MessageBar intent="error" className={classes.error}>
                         <MessageBarBody>
-                            Line {error.node.startPosition.row + 1}: {error.message}
+                            {error instanceof ParseError && `Line ${error.startPosition.row + 1}: `}
+                            {error.message}
                         </MessageBarBody>
                     </MessageBar>
                 )}
@@ -69,10 +88,10 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
                             className={mergeClasses('hljs', classes.editor)}
                             value={code}
                             onValueChange={setCode}
-                            highlight={(code) => highlight(code, { language: 'dts' }).value}
+                            highlight={(code) => highlight(code, { language: formatData.language }).value}
                             padding={12}
                             tabSize={4}
-                            placeholder="Paste devicetree code here"
+                            placeholder={`Paste ${formatData.name} data here`}
                             {...uncontrolledFocus}
                         />
                     </div>
@@ -91,6 +110,7 @@ const useStyles = makeStyles({
         display: 'grid',
         gridTemplate: `
             "actions" max-content
+            "note" max-content
             "error" max-content
             "code" auto / auto
         `,
@@ -101,11 +121,17 @@ const useStyles = makeStyles({
         paddingBottom: tokens.spacingVerticalM,
         boxSizing: 'border-box',
     },
-    actions: {
+    header: {
         gridArea: 'actions',
         display: 'flex',
-        justifyContent: 'end',
+        justifyContent: 'space-between',
         marginBottom: tokens.spacingVerticalM,
+    },
+    settings: {},
+    note: {
+        marginTop: 0,
+        marginBottom: tokens.spacingVerticalM,
+        color: tokens.colorNeutralForeground2,
     },
     error: {
         gridArea: 'error',
@@ -140,6 +166,23 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForegroundDisabled,
     },
 });
+
+interface FormatData {
+    name: string;
+    language: string;
+    note?: string;
+}
+
+const FORMAT_DATA: Record<ImportFormat, FormatData> = {
+    devicetree: { name: 'devicetree', language: 'dts' },
+    kle: {
+        name: 'KLE',
+        language: 'json',
+        note:
+            'Use the output from "Download JSON", not the raw data. ' +
+            'To import multiple layouts, paste multiple files end-to-end below.',
+    },
+};
 
 function useConfirmImport() {
     return useAsyncModal((resolve, props) => {

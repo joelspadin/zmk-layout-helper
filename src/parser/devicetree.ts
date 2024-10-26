@@ -1,6 +1,7 @@
 import treeSitterDevicetreeUrl from 'tree-sitter-devicetree/tree-sitter-devicetree.wasm?url';
 import Parser from 'web-tree-sitter';
 import treeSitterUrl from 'web-tree-sitter/tree-sitter.wasm?url';
+import { ParseError } from './error';
 
 export let Devicetree: Parser.Language;
 
@@ -25,18 +26,6 @@ export async function getParser(): Promise<Parser> {
     const parser = new Parser();
     parser.setLanguage(Devicetree);
     return parser;
-}
-
-/**
- * Indicates a failure to parse part of the code, and where the error occurred.
- */
-export class ParseError extends Error {
-    constructor(
-        public node: Parser.SyntaxNode,
-        message: string,
-    ) {
-        super(message);
-    }
 }
 
 export function getCapture(captures: Parser.QueryCapture[], name: string): Parser.SyntaxNode | null {
@@ -210,7 +199,7 @@ function getNodePathParts(node: Parser.SyntaxNode | null): string[] {
             return getNodePathParts(ref);
         }
 
-        throw new ParseError(dtnode, `Could not find node with label "${label}"`);
+        console.warn(`Could not find node with label "${label}"`, dtnode);
     }
 
     return [...getNodePathParts(dtnode.parent), name];
@@ -345,7 +334,7 @@ export function getPropertyValue(
 
 function expectType(node: Parser.SyntaxNode, ...types: string[]) {
     if (!types.includes(node.type)) {
-        throw new ParseError(node, `Expected ${types.join(' | ')} but got ${node.type}`);
+        throw new ParseError(`Expected ${types.join(' | ')} but got ${node.type}`, node);
     }
 }
 
@@ -355,7 +344,7 @@ function getFirstCell(node: Parser.SyntaxNode) {
         result = result.nextNamedSibling;
     }
     if (!result) {
-        throw new ParseError(node, 'Expected a value');
+        throw new ParseError('Expected a value', node);
     }
     return result;
 }
@@ -404,7 +393,7 @@ export function parsePhandle(node: Parser.SyntaxNode): string {
 
     const label = node.childForFieldName('label');
     if (!label) {
-        throw new ParseError(node, 'Expected a phandle');
+        throw new ParseError('Expected a phandle', node);
     }
 
     return label.text;
@@ -451,7 +440,7 @@ function evaluateUnaryExpression(node: Parser.SyntaxNode): number {
     const argument = node.childForFieldName('argument');
 
     if (!operator || !argument) {
-        throw new ParseError(node, 'Invalid unary expression');
+        throw new ParseError('Invalid unary expression', node);
     }
 
     const value = parseNumber(argument);
@@ -466,7 +455,7 @@ function evaluateUnaryExpression(node: Parser.SyntaxNode): number {
         case '+':
             return value;
         default:
-            throw new ParseError(node, `Invalid operator "${operator.text}"`);
+            throw new ParseError(`Invalid operator "${operator.text}"`, node);
     }
 }
 
@@ -476,7 +465,7 @@ function evaluateBinaryExpression(node: Parser.SyntaxNode): number {
     const right = node.childForFieldName('right');
 
     if (!operator || !left || !right) {
-        throw new ParseError(node, 'Invalid binary expression');
+        throw new ParseError('Invalid binary expression', node);
     }
 
     const value1 = parseNumber(left);
@@ -520,6 +509,6 @@ function evaluateBinaryExpression(node: Parser.SyntaxNode): number {
         case '>>':
             return value1 >> value2;
         default:
-            throw new ParseError(node, `Invalid operator "${operator.text}"`);
+            throw new ParseError(`Invalid operator "${operator.text}"`, node);
     }
 }

@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from 'react';
+
 export interface NodeId {
     path: string;
     label: string;
@@ -29,6 +31,16 @@ export interface PositionMap extends NodeId {
 }
 
 export type Point = [number, number];
+
+export type ImportFormat = 'devicetree' | 'kle';
+
+export interface ImportState {
+    format: ImportFormat;
+    setFormat: Dispatch<SetStateAction<ImportFormat>>;
+    code: string;
+    setCode: Dispatch<SetStateAction<string>>;
+    importCode: () => void;
+}
 
 export interface EditState {
     layouts: PhysicalLayout[];
