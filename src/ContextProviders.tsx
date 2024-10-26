@@ -2,12 +2,11 @@ import { PropsWithChildren, useCallback, useState } from 'react';
 import { DEFAULT_EDIT_STATE, EditStateContext, ImportCodeContext, ParseErrorContext, ParserContext } from './context';
 import { getParser, ParseError } from './parser/devicetree';
 import { LayoutParseResult, parseLayouts } from './parser/layout';
-import { getNodeRange } from './parser/position';
 import { EditState, PhysicalLayout, PositionMap } from './types';
 import { use, wrapPromise } from './use';
 import { getMinKeyCount } from './utility';
 
-const parserPromise = wrapPromise(getParser());
+const dtsParserPromise = wrapPromise(getParser());
 
 interface ParseResult {
     parsed?: LayoutParseResult;
@@ -20,7 +19,7 @@ export type ContextProvidersProps = PropsWithChildren;
  * Manages the application state that should be consistent between tabs.
  */
 export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) => {
-    const parser = use(parserPromise);
+    const dtsParser = use(dtsParserPromise);
     const [code, setCode] = useState<string>('');
 
     // TODO: add undo/redo for state changes
@@ -29,17 +28,17 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) 
 
     const parseCode = useCallback(() => {
         try {
-            const parsed = parseLayouts(parser, code);
+            const parsed = parseLayouts(dtsParser, code);
             setResult({ parsed });
         } catch (ex) {
             if (ex instanceof ParseError) {
-                console.error(getNodeRange(code, ex.node).toString(), ex.message);
+                console.error(ex.node.startPosition, ex.node.endPosition, ex.message);
                 setResult({ error: ex });
             }
 
             throw ex;
         }
-    }, [parser, code, setResult]);
+    }, [dtsParser, code, setResult]);
 
     const [prevMap, setPrevMap] = useState<PositionMap>();
     const [prevLayouts, setPrevLayouts] = useState<PhysicalLayout[]>();
@@ -50,7 +49,7 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) 
     }
 
     return (
-        <ParserContext.Provider value={parser}>
+        <ParserContext.Provider value={dtsParser}>
             <ImportCodeContext.Provider value={[code, setCode, parseCode]}>
                 <EditStateContext.Provider value={[state, setState]}>
                     <ParseErrorContext.Provider value={error}>{children}</ParseErrorContext.Provider>
