@@ -26,6 +26,7 @@ const githubDark = githubDarkInit({
     settings: {
         gutterBackground: '#0d1117',
         gutterForeground: tokens.colorNeutralForegroundDisabled,
+        lineHighlight: '#171e29',
     },
 });
 
