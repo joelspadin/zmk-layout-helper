@@ -11,7 +11,10 @@
     "build-grammar": "tree-sitter build --wasm node_modules/tree-sitter-devicetree -o public/tree-sitter-devicetree.wasm"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.7.1",
     "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/language": "^6.10.3",
+    "@codemirror/view": "^6.34.1",
     "@fluentui/react-components": "^9.55.1",
     "@fluentui/react-icons": "^2.0.262",
     "@streamparser/json": "^0.0.21",

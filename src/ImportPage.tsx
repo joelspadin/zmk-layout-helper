@@ -13,7 +13,7 @@ import {
 import { ArrowImportRegular } from '@fluentui/react-icons';
 import { githubDarkInit } from '@uiw/codemirror-theme-github';
 import CodeMirror, { BasicSetupOptions, Extension } from '@uiw/react-codemirror';
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { ImportPrompt } from './ImportPrompt';
 import { ParseError } from './parser/error';
 import { ImportFormat } from './types';
@@ -22,6 +22,8 @@ import { useEditState } from './useEditState';
 import { useImportState } from './useImportState';
 import { useParseError } from './useParseError';
 import { capitalize } from './utility';
+
+const DROP_FILE_TYPES = ['.json', '.dts', '.dtsi', '.keymap', '.overlay'];
 
 const githubDark = githubDarkInit({
     settings: {
@@ -52,6 +54,19 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
             onImport?.();
         }
     }, [state.layouts.length, confirmImport, importCode, onImport]);
+
+    const handleDrop: React.DragEventHandler = useCallback(
+        async (ev) => {
+            ev.preventDefault();
+
+            const file = ev.dataTransfer.items[0]?.getAsFile();
+            if (file && DROP_FILE_TYPES.some((ext) => file.name.endsWith(ext))) {
+                const text = await file.text();
+                setCode((prev) => (prev ? prev + '\n' + text : text));
+            }
+        },
+        [setCode],
+    );
 
     const formatData = FORMAT_DATA[format];
 
@@ -107,13 +122,15 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
                         value={code}
                         onChange={(value) => setCode(value)}
                         theme={githubDark}
-                        placeholder={`Paste ${formatData.name} data here`}
+                        placeholder={`Paste ${formatData.name} data or drag and drop files here`}
                         extensions={formatData.extensions}
                         basicSetup={{
                             lineNumbers: true,
                             foldGutter: false,
+                            dropCursor: false,
                             ...formatData.options,
                         }}
+                        onDropCapture={handleDrop}
                         {...uncontrolledFocus}
                     />
                 </div>
