@@ -144,9 +144,13 @@ export const PositionMapPage: React.FC = () => {
     if (state.layouts.length === 0) {
         return (
             <div className={classes.root}>
-                <MessageBar intent="error" shape="rounded" className={classes.error}>
-                    <MessageBarBody>The data could not be parsed or contains no physical layout nodes.</MessageBarBody>
-                </MessageBar>
+                <div>
+                    <MessageBar intent="error" shape="rounded" className={classes.error}>
+                        <MessageBarBody>
+                            The data could not be parsed or contains no physical layout nodes.
+                        </MessageBarBody>
+                    </MessageBar>
+                </div>
             </div>
         );
     }

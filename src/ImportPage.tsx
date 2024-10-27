@@ -53,47 +53,56 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
         <div className={classes.root}>
             <div className={classes.content}>
                 <div className={classes.header}>
-                    <div className={classes.settings}>
-                        <Field label="Format" orientation="horizontal">
-                            <Select
-                                value={format}
-                                appearance="underline"
-                                onChange={(ev, data) => setFormat(data.value as ImportFormat)}
-                            >
-                                <option value="devicetree">Devicetree</option>
-                                <option value="kle">KLE JSON</option>
-                            </Select>
-                        </Field>
+                    <div className={classes.topRow}>
+                        <div>
+                            <Field label="Format" orientation="horizontal">
+                                <Select
+                                    value={format}
+                                    appearance="underline"
+                                    onChange={(ev, data) => setFormat(data.value as ImportFormat)}
+                                >
+                                    <option value="devicetree">Devicetree</option>
+                                    <option value="kle">KLE JSON</option>
+                                </Select>
+                            </Field>
+                        </div>
+
+                        <Button
+                            appearance="primary"
+                            disabled={!code}
+                            icon={<ArrowImportRegular />}
+                            onClick={handleImport}
+                        >
+                            Import {formatData.name}
+                        </Button>
+
+                        {renderConfirmModal()}
                     </div>
-
-                    <Button appearance="primary" disabled={!code} icon={<ArrowImportRegular />} onClick={handleImport}>
-                        Import {formatData.name}
-                    </Button>
-
-                    {renderConfirmModal()}
+                    {formatData.note && <div className={classes.note}>{formatData.note}</div>}
+                    {error && (
+                        <MessageBar intent="error">
+                            <MessageBarBody>
+                                {error instanceof ParseError && `Line ${error.startPosition.row + 1}: `}
+                                {error.message}
+                            </MessageBarBody>
+                        </MessageBar>
+                    )}
                 </div>
-                {formatData.note && <p className={classes.note}>{formatData.note}</p>}
-                {error && (
-                    <MessageBar intent="error" className={classes.error}>
-                        <MessageBarBody>
-                            {error instanceof ParseError && `Line ${error.startPosition.row + 1}: `}
-                            {error.message}
-                        </MessageBarBody>
-                    </MessageBar>
-                )}
-                <div className={classes.editorBorder}>
-                    <div className={classes.editorWrapper} {...focusGroup}>
-                        <LineNumbers code={code} className={mergeClasses('hljs', classes.lineNumbers)} />
-                        <Editor
-                            className={mergeClasses('hljs', classes.editor)}
-                            value={code}
-                            onValueChange={setCode}
-                            highlight={(code) => highlight(code, { language: formatData.language }).value}
-                            padding={12}
-                            tabSize={4}
-                            placeholder={`Paste ${formatData.name} data here`}
-                            {...uncontrolledFocus}
-                        />
+                <div className={classes.editor} {...focusGroup}>
+                    <div className={classes.editorScroll}>
+                        <div className={classes.editorWrapper}>
+                            <LineNumbers code={code} className={mergeClasses('hljs', classes.lineNumbers)} />
+                            <Editor
+                                className="hljs"
+                                value={code}
+                                onValueChange={setCode}
+                                highlight={(code) => highlight(code, { language: formatData.language }).value}
+                                padding={12}
+                                tabSize={4}
+                                placeholder={`Paste ${formatData.name} data here`}
+                                {...uncontrolledFocus}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -109,11 +118,10 @@ const useStyles = makeStyles({
     content: {
         display: 'grid',
         gridTemplate: `
-            "actions" max-content
-            "note" max-content
-            "error" max-content
+            "header" max-content
             "code" auto / auto
         `,
+
         width: '800px',
         maxWidth: 'calc(100vw - 48px)',
         height: 'calc(100vh - 48px)',
@@ -122,47 +130,47 @@ const useStyles = makeStyles({
         boxSizing: 'border-box',
     },
     header: {
-        gridArea: 'actions',
+        gridArea: 'header',
+        display: 'flex',
+        flexFlow: 'column',
+        gap: tokens.spacingVerticalM,
+
+        marginBottom: tokens.spacingVerticalM,
+    },
+    topRow: {
         display: 'flex',
         justifyContent: 'space-between',
-        marginBottom: tokens.spacingVerticalM,
     },
-    settings: {},
     note: {
-        marginTop: 0,
-        marginBottom: tokens.spacingVerticalM,
         color: tokens.colorNeutralForeground2,
     },
-    error: {
-        gridArea: 'error',
-        marginBottom: tokens.spacingVerticalM,
-    },
-    editorBorder: {
-        gridArea: 'code',
+    editor: {
         overflow: 'hidden',
         borderRadius: tokens.borderRadiusMedium,
         boxShadow: tokens.shadow4,
-    },
-    editorWrapper: {
-        display: 'grid',
-        gridTemplate: 'auto / max-content auto',
-        position: 'relative',
-        height: '100%',
-        overflow: 'auto',
+
+        boxSizing: 'border-box',
+
         fontFamily: tokens.fontFamilyMonospace,
+
+        '& textarea': {
+            outline: 'none',
+        },
+    },
+    editorScroll: {
+        height: '100%',
+        overflowX: 'hidden',
+        overflowY: 'auto',
 
         backgroundColor: tokens.colorNeutralBackground3,
         scrollbarColor: `${tokens.colorNeutralForeground3} ${tokens.colorNeutralBackground3}`,
     },
-    editor: {
-        minHeight: '100%',
-
-        '& textarea': {
-            outline: 0,
-        },
+    editorWrapper: {
+        display: 'grid',
+        gridTemplate: 'auto / max-content auto',
     },
     lineNumbers: {
-        ...shorthands.padding('12px', tokens.spacingHorizontalL),
+        ...shorthands.padding('12px', tokens.spacingHorizontalS, '12px', tokens.spacingHorizontalL),
         color: tokens.colorNeutralForegroundDisabled,
     },
 });
