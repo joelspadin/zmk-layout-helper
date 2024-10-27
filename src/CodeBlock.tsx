@@ -32,9 +32,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ children, language, classN
     }, [children, setCopied, setTimeout]);
 
     return (
-        <pre className={classes.pre}>
+        <pre className={mergeClasses(classes.pre, className)}>
             <code
-                className={mergeClasses('hljs', classes.code, className)}
+                className={mergeClasses('hljs', classes.code)}
                 dangerouslySetInnerHTML={{ __html: highlighted }}
                 {...props}
             />

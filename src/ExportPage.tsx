@@ -25,7 +25,7 @@ export const ExportPage: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            <div>
+            <div className={classes.content}>
                 <div className={classes.settings}>
                     <Field label="Position map columns">
                         <SpinButton
@@ -72,23 +72,36 @@ export const ExportPage: React.FC = () => {
 const useStyles = makeStyles({
     root: {
         display: 'flex',
-        flexFlow: 'column',
-        alignItems: 'center',
+        justifyContent: 'center',
+    },
 
-        marginTop: tokens.spacingVerticalM,
+    content: {
+        display: 'grid',
+        gridTemplate: `
+            "header" max-content
+            "code" auto / auto
+        `,
+
+        width: '800px',
+        maxWidth: 'calc(100vw - 48px)',
+        height: 'calc(100vh - 48px)',
+        paddingTop: tokens.spacingVerticalM,
+        paddingBottom: tokens.spacingVerticalM,
+        boxSizing: 'border-box',
     },
 
     settings: {
+        gridArea: 'header',
         display: 'flex',
         marginBottom: tokens.spacingVerticalM,
         gap: tokens.spacingHorizontalM,
     },
 
     code: {
-        boxSizing: 'border-box',
-        width: '800px',
-        maxWidth: 'calc(100vw - 48px)',
-        height: `calc(100vh - 48px - 58px - ${tokens.spacingVerticalM} * 3)`,
+        gridArea: 'code',
+        overflow: 'auto',
+
+        scrollbarColor: `${tokens.colorNeutralForeground3} #0d1117`,
     },
 
     input: {
