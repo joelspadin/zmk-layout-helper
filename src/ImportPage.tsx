@@ -90,10 +90,9 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
                 </div>
                 <div className={classes.editor} {...focusGroup}>
                     <div className={classes.editorScroll}>
-                        <div className={classes.editorWrapper}>
-                            <LineNumbers code={code} className={mergeClasses('hljs', classes.lineNumbers)} />
+                        <div className={mergeClasses('hljs', classes.editorWrapper)}>
+                            <LineNumbers code={code} className={classes.lineNumbers} />
                             <Editor
-                                className="hljs"
                                 value={code}
                                 onValueChange={setCode}
                                 highlight={(code) => highlight(code, { language: formatData.language }).value}
@@ -168,6 +167,7 @@ const useStyles = makeStyles({
     editorWrapper: {
         display: 'grid',
         gridTemplate: 'auto / max-content auto',
+        minHeight: '100%',
     },
     lineNumbers: {
         ...shorthands.padding('12px', tokens.spacingHorizontalS, '12px', tokens.spacingHorizontalL),
