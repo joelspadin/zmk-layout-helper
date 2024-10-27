@@ -12,7 +12,8 @@ import {
     parsePhandle,
 } from './devicetree';
 import { ParseError } from './error';
-import { KleKey, KleKeyboard, parseKle } from './kle';
+import { KleKey, KleKeyboard, parseKleJson } from './kle';
+import { getQmkLayoutDisplayName, getQmkLayoutNodeName, parseQmkJson, QmkKey, QmkLayout } from './qmk';
 
 export interface LayoutParseResult {
     layouts: PhysicalLayout[];
@@ -100,7 +101,7 @@ function parsePositionMapItem(item: Parser.SyntaxNode): PositionMapItem {
 }
 
 export function parseLayoutsKle(text: string): LayoutParseResult {
-    const keyboards = parseKle(text);
+    const keyboards = parseKleJson(text);
 
     return {
         layouts: keyboards.map(getKlePhysicalLayout),
@@ -126,6 +127,40 @@ function getKleKeyAttributes(keys: readonly KleKey[]): KeyAttributes[] {
             height: key.h,
             origin: [key.rx, key.ry],
             rotation: key.r,
+        };
+    });
+}
+
+export function parseLayoutsQmk(text: string): LayoutParseResult {
+    const data = parseQmkJson(text);
+
+    return {
+        layouts: Object.entries(data.layouts).map((item) => getQmkPhysicalLayout(item[0], item[1])),
+    };
+}
+
+function getQmkPhysicalLayout(key: string, layout: QmkLayout): PhysicalLayout {
+    const nodeName = getQmkLayoutNodeName(key);
+    const displayName = getQmkLayoutDisplayName(key);
+
+    return {
+        path: `/${nodeName}`,
+        label: nodeName,
+        displayName,
+        keys: getQmkKeyAttributes(layout.layout),
+        transform: '',
+        kscan: '',
+    };
+}
+
+function getQmkKeyAttributes(keys: readonly QmkKey[]): KeyAttributes[] {
+    return keys.map((key) => {
+        return {
+            position: [key.x, key.y],
+            width: key.w ?? 1,
+            height: key.h ?? 1,
+            origin: [key.rx ?? 0, key.ry ?? 0],
+            rotation: key.r ?? 0,
         };
     });
 }

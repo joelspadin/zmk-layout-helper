@@ -1,7 +1,7 @@
 import { PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import { DEFAULT_EDIT_STATE, EditStateContext, ImportCodeContext, ParseErrorContext, ParserContext } from './context';
 import { getParser } from './parser/devicetree';
-import { LayoutParseResult, parseLayoutsDevicetree, parseLayoutsKle } from './parser/layout';
+import { LayoutParseResult, parseLayoutsDevicetree, parseLayoutsKle, parseLayoutsQmk } from './parser/layout';
 import { EditState, ImportFormat, PhysicalLayout, PositionMap } from './types';
 import { use, wrapPromise } from './use';
 import { getMinKeyCount } from './utility';
@@ -36,6 +36,9 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({ children }) 
 
             case 'kle':
                 return parseLayoutsKle;
+
+            case 'qmk':
+                return parseLayoutsQmk;
         }
     }, [format, dtsParser]);
 

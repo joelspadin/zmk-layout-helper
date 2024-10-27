@@ -32,7 +32,7 @@ export interface PositionMap extends NodeId {
 
 export type Point = [number, number];
 
-export type ImportFormat = 'devicetree' | 'kle';
+export type ImportFormat = 'devicetree' | 'kle' | 'qmk';
 
 export interface ImportState {
     format: ImportFormat;

@@ -28,6 +28,13 @@ export function indent(text: string, level = 1, prefix = '    ') {
 }
 
 /**
+ * Capitalize the first letter of a string.
+ */
+export function capitalize(text: string) {
+    return text.charAt(0).toUpperCase() + text.substring(1);
+}
+
+/**
  * Split a list into chunks of the given size.
  *
  * If the remainder of the list is not large enough to fill a complete chunk,

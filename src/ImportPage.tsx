@@ -21,6 +21,7 @@ import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
 import { useImportState } from './useImportState';
 import { useParseError } from './useParseError';
+import { capitalize } from './utility';
 
 const githubDark = githubDarkInit({
     settings: {
@@ -67,8 +68,14 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
                                     appearance="underline"
                                     onChange={(ev, data) => setFormat(data.value as ImportFormat)}
                                 >
-                                    <option value="devicetree">Devicetree</option>
-                                    <option value="kle">KLE JSON</option>
+                                    {Object.entries(FORMAT_DATA).map((item) => {
+                                        const [key, value] = item;
+                                        return (
+                                            <option key={key} value={key}>
+                                                {capitalize(value.name)}
+                                            </option>
+                                        );
+                                    })}
                                 </Select>
                             </Field>
                         </div>
@@ -198,12 +205,17 @@ interface FormatData {
 const FORMAT_DATA: Record<ImportFormat, FormatData> = {
     devicetree: { name: 'devicetree', options: { tabSize: 4 }, extensions: [] },
     kle: {
-        name: 'KLE',
+        name: 'KLE JSON',
         options: { tabSize: 2 },
         extensions: [json()],
         note:
             'Use the output from "Download JSON", not the raw data. ' +
             'To import multiple layouts, paste multiple files end-to-end below.',
+    },
+    qmk: {
+        name: 'QMK JSON',
+        options: { tabSize: 4 },
+        extensions: [json()],
     },
 };
 

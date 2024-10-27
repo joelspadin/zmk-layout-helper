@@ -41,7 +41,7 @@ export interface KleKeyboard {
     keys: KleKey[];
 }
 
-export function parseKle(text: string): KleKeyboard[] {
+export function parseKleJson(text: string): KleKeyboard[] {
     const result: KleKeyboard[] = [];
 
     const parser = new JSONParser({ separator: '' });
@@ -50,7 +50,6 @@ export function parseKle(text: string): KleKeyboard[] {
             return;
         }
 
-        console.log(value);
         if (Array.isArray(value)) {
             result.push(parseKleKeyboard(value));
         }
