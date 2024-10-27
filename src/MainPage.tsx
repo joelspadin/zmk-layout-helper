@@ -47,7 +47,7 @@ const PageContents: React.FC = () => {
                     selectedValue={tab}
                     onTabSelect={(ev, data) => setTab(data.value as TabValue)}
                 >
-                    <Tab value="import">Import devicetree</Tab>
+                    <Tab value="import">Import</Tab>
                     <Tab value="positions" disabled={disabled}>
                         Edit position map
                     </Tab>
