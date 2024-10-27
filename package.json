@@ -11,14 +11,16 @@
     "build-grammar": "tree-sitter build --wasm node_modules/tree-sitter-devicetree -o public/tree-sitter-devicetree.wasm"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.1",
     "@fluentui/react-components": "^9.55.1",
     "@fluentui/react-icons": "^2.0.262",
     "@streamparser/json": "^0.0.21",
+    "@uiw/codemirror-theme-github": "^4.23.6",
+    "@uiw/react-codemirror": "^4.23.6",
     "chroma-js": "^3.1.2",
     "highlight.js": "^11.10.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-simple-code-editor": "^0.14.1",
     "web-tree-sitter": "^0.24.3"
   },
   "devDependencies": {

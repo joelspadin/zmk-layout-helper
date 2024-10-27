@@ -1,28 +1,33 @@
+import { json } from '@codemirror/lang-json';
 import {
     Button,
     Field,
     makeStyles,
-    mergeClasses,
     MessageBar,
     MessageBarBody,
     Select,
-    shorthands,
     tokens,
     useFocusableGroup,
     useUncontrolledFocus,
 } from '@fluentui/react-components';
 import { ArrowImportRegular } from '@fluentui/react-icons';
+import { githubDarkInit } from '@uiw/codemirror-theme-github';
+import CodeMirror, { BasicSetupOptions, Extension } from '@uiw/react-codemirror';
 import { useCallback } from 'react';
-import Editor from 'react-simple-code-editor';
-import { highlight } from './highlight';
 import { ImportPrompt } from './ImportPrompt';
-import { LineNumbers } from './LineNumbers';
 import { ParseError } from './parser/error';
 import { ImportFormat } from './types';
 import { useAsyncModal } from './useAsyncModal';
 import { useEditState } from './useEditState';
 import { useImportState } from './useImportState';
 import { useParseError } from './useParseError';
+
+const githubDark = githubDarkInit({
+    settings: {
+        gutterBackground: '#0d1117',
+        gutterForeground: tokens.colorNeutralForegroundDisabled,
+    },
+});
 
 export interface ImportPageProps {
     onImport?: () => void;
@@ -88,21 +93,21 @@ export const ImportPage: React.FC<ImportPageProps> = ({ onImport }) => {
                         </MessageBar>
                     )}
                 </div>
-                <div className={classes.editor} {...focusGroup}>
-                    <div className={classes.editorScroll}>
-                        <div className={mergeClasses('hljs', classes.editorWrapper)}>
-                            <LineNumbers code={code} className={classes.lineNumbers} />
-                            <Editor
-                                value={code}
-                                onValueChange={setCode}
-                                highlight={(code) => highlight(code, { language: formatData.language }).value}
-                                padding={12}
-                                tabSize={4}
-                                placeholder={`Paste ${formatData.name} data here`}
-                                {...uncontrolledFocus}
-                            />
-                        </div>
-                    </div>
+                <div className={classes.editorBorder} {...focusGroup}>
+                    <CodeMirror
+                        className={classes.editor}
+                        value={code}
+                        onChange={(value) => setCode(value)}
+                        theme={githubDark}
+                        placeholder={`Paste ${formatData.name} data here`}
+                        extensions={formatData.extensions}
+                        basicSetup={{
+                            lineNumbers: true,
+                            foldGutter: false,
+                            ...formatData.options,
+                        }}
+                        {...uncontrolledFocus}
+                    />
                 </div>
             </div>
         </div>
@@ -143,49 +148,58 @@ const useStyles = makeStyles({
     note: {
         color: tokens.colorNeutralForeground2,
     },
-    editor: {
+    editorBorder: {
+        display: 'flex',
         overflow: 'hidden',
         borderRadius: tokens.borderRadiusMedium,
         boxShadow: tokens.shadow4,
+    },
+    editor: {
+        width: '100%',
 
-        boxSizing: 'border-box',
+        '& .cm-editor': {
+            height: '100%',
 
-        fontFamily: tokens.fontFamilyMonospace,
-
-        '& textarea': {
-            outline: 'none',
+            scrollbarColor: `${tokens.colorNeutralForeground3} #0d1117`,
         },
-    },
-    editorScroll: {
-        height: '100%',
-        overflowX: 'hidden',
-        overflowY: 'auto',
 
-        backgroundColor: tokens.colorNeutralBackground3,
-        scrollbarColor: `${tokens.colorNeutralForeground3} ${tokens.colorNeutralBackground3}`,
-    },
-    editorWrapper: {
-        display: 'grid',
-        gridTemplate: 'auto / max-content auto',
-        minHeight: '100%',
-    },
-    lineNumbers: {
-        ...shorthands.padding('12px', tokens.spacingHorizontalS, '12px', tokens.spacingHorizontalL),
-        color: tokens.colorNeutralForegroundDisabled,
+        '& .cm-scroller': {
+            fontFamily: tokens.fontFamilyMonospace,
+        },
+
+        '& .cm-content': {
+            paddingTop: tokens.spacingVerticalM,
+            paddingBottom: tokens.spacingVerticalM,
+        },
+
+        '& .cm-line': {
+            paddingLeft: tokens.spacingHorizontalM,
+            paddingRight: tokens.spacingHorizontalM,
+        },
+
+        '& .cm-gutter': {
+            paddingLeft: tokens.spacingHorizontalM,
+        },
+
+        '& .cm-activeLineGutter': {
+            marginLeft: `calc(-1 * ${tokens.spacingHorizontalM})`,
+        },
     },
 });
 
 interface FormatData {
     name: string;
-    language: string;
+    options: BasicSetupOptions;
     note?: string;
+    extensions: Extension[];
 }
 
 const FORMAT_DATA: Record<ImportFormat, FormatData> = {
-    devicetree: { name: 'devicetree', language: 'dts' },
+    devicetree: { name: 'devicetree', options: { tabSize: 4 }, extensions: [] },
     kle: {
         name: 'KLE',
-        language: 'json',
+        options: { tabSize: 2 },
+        extensions: [json()],
         note:
             'Use the output from "Download JSON", not the raw data. ' +
             'To import multiple layouts, paste multiple files end-to-end below.',
