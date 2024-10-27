@@ -1,3 +1,4 @@
+import { cpp } from '@codemirror/lang-cpp';
 import { json } from '@codemirror/lang-json';
 import {
     Button,
@@ -11,6 +12,7 @@ import {
     useUncontrolledFocus,
 } from '@fluentui/react-components';
 import { ArrowImportRegular } from '@fluentui/react-icons';
+import { tags as t } from '@lezer/highlight';
 import { githubDarkInit } from '@uiw/codemirror-theme-github';
 import CodeMirror, { BasicSetupOptions, Extension } from '@uiw/react-codemirror';
 import React, { useCallback } from 'react';
@@ -31,6 +33,11 @@ const githubDark = githubDarkInit({
         gutterForeground: tokens.colorNeutralForegroundDisabled,
         lineHighlight: '#6882a91f',
     },
+    styles: [
+        { tag: t.name, color: '#ffa657' },
+        { tag: t.typeName, color: '#d2a8ff' },
+        { tag: t.processingInstruction, color: '#ff7b72' },
+    ],
 });
 
 export interface ImportPageProps {
@@ -220,7 +227,8 @@ interface FormatData {
 }
 
 const FORMAT_DATA: Record<ImportFormat, FormatData> = {
-    devicetree: { name: 'devicetree', options: { tabSize: 4 }, extensions: [] },
+    // TODO: replace cpp() with devicetree parser
+    devicetree: { name: 'devicetree', options: { tabSize: 4 }, extensions: [cpp()] },
     kle: {
         name: 'KLE JSON',
         options: { tabSize: 2 },
